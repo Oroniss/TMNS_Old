@@ -31,13 +31,13 @@ Current progress and changes.
 6/10/17: Added the view back-story option.
 6/10/17: Added output text and display
 6/10/17: Added debug text and log.
+6/10/17: Finished up the Key Dictionary and did some general tidying up.
+6/10/17: Added version control.
 
 Next Steps
 
-Get save and load working correctly.
 Also get LOS and FOV working properly.
-
-Setup version control.
+Get save and load working correctly.
 
 Start version 02 - as a new branch.
 
@@ -1155,6 +1155,7 @@ class MapLevel(object):
         self.entry_text = level_details[9::]
 
         self.map_grid = LEVEL_MAPS[level_name]
+        self.revealed = [[False] * len(self.map_grid[0]) for i in self.map_grid]
 
         # TODO: Get all the other objects here
 
@@ -1208,6 +1209,35 @@ class MapLevel(object):
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][1]
         else:  # fogcolor
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][2]
+
+    def reveal_tile(self, x_loc, y_loc):
+        """
+        Uncovers the specified tile.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        """
+
+        if not self.is_valid_map_coord(x_loc, y_loc):
+            interface.add_debug_text("Tried to reveal invalid coordinate {}, {} for level {}".format(
+                x_loc, y_loc, self.level_name))
+            return
+
+        self.revealed[y_loc][x_loc] = True
+
+    def is_revealed(self, x_loc, y_loc):
+        """
+        Checks whether the specified tile has been revealed or not.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :return: True if the tile has been revealed, False otherwise
+        """
+
+        if not self.is_valid_map_coord(x_loc, y_loc):
+            interface.add_debug_text("Checked reveal of invalid coordinate {}, {} for level {}".format(
+                x_loc, y_loc, self.level_name))
+            return False
+
+        return self.revealed[y_loc][x_loc]
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Actor functions
