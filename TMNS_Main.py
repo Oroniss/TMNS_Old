@@ -882,14 +882,49 @@ class Interface(object):
         Saves the state of the current game, and then exits.
         """
 
+        # Update the summary save dictionary
         save_dict = read_save_games()
         save_dict[self.game.player.name] = (self.game.player.name, self.game.player.character_class,
                                             self.game.player.character_level, self.game.current_level.level_name,
                                             self.game.timer.current_time)
         update_save_games(save_dict)
 
+        # TODO: Make sure any clean up that needs to happen before this is maintained.
+        # Create the actual save file
+        file_name = self.game.player.name.replace(" ", "_")
+        save_file = open(os.path.join(os.getcwd(), "Saves", file_name), mode="wb")
+        pickle.dump(self.game, save_file)
+        save_file.close()
+
     def load_game(self, character_details):
-        pass
+        """
+        Loads up the game corresponding to the character details selected.
+        :param character_details: A tuple of (Name, C_Class, C_Level, Dungeon_level, time).
+        :return: True if loaded successfully, False otherwise.
+        """
+
+        file_name = character_details[0].replace(" ", "_")
+        if not os.path.exists(os.path.join(os.getcwd(), "Saves", file_name)):
+            return False
+
+        try:
+            save_file = open(os.path.join(os.getcwd(), "Saves", file_name), mode="rb")
+            game = pickle.load(save_file)
+            save_file.close()
+            os.remove(os.path.join(os.getcwd(), "Saves", file_name))
+
+            # Now validate the save file
+            if (game.player.name != character_details[0] or game.player.character_class != character_details[1] or
+                game.player.character_level != character_details[2] or game.current_level.name != character_details[3]
+                    or game.timer.current_time != character_details[4]):
+                return False
+
+            self.game = game
+            return True
+
+        except (AttributeError, NameError, ValueError, IOError):
+            # Mostly here to catch malformed game object, which doesn't have the correct attributes, etc.
+            return False
 
     @staticmethod
     def add_extra_keys():
