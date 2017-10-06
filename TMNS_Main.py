@@ -34,6 +34,7 @@ Current progress and changes.
 6/10/17: Finished up the Key Dictionary and did some general tidying up.
 6/10/17: Added version control.
 6/10/17: Added FOV and LOS - seem to be working ok.
+6/10/17: Started work on save game functionality.
 
 Next Steps
 
@@ -48,6 +49,7 @@ Start work on furnishings.
 Add level 2.
 Fix up level transition
 Get movement up and running properly.
+Clear out TODOs
 
 Start version 03
 
@@ -511,6 +513,9 @@ class Interface(object):
             gm_options = self.set_gm_game_options()
             return player, gm_options
 
+    def load_game_menu(self):
+        pass
+
     def choose_name(self, save_dictionary=None):
         """
         Gets the player to choose a name for their character.
@@ -872,6 +877,20 @@ class Interface(object):
                 config_file.close()
                 return
 
+    def save_game(self):  # Character Name, character class, character level, dungeon level, time.
+        """
+        Saves the state of the current game, and then exits.
+        """
+
+        save_dict = read_save_games()
+        save_dict[self.game.player.name] = (self.game.player.name, self.game.player.character_class,
+                                            self.game.player.character_level, self.game.current_level.level_name,
+                                            self.game.timer.current_time)
+        update_save_games(save_dict)
+
+    def load_game(self, character_details):
+        pass
+
     @staticmethod
     def add_extra_keys():
         """ Adds the extra laptop keys to the key dictionary. """
@@ -1056,6 +1075,7 @@ class Player(object):
         self.name = name
         self.race = race
         self.character_class = character_class
+        self.character_level = 1
 
         self.x_loc = 24
         self.y_loc = 54
@@ -1604,8 +1624,15 @@ def read_save_games():
     return save_dictionary
 
 
-def update_save_games():
-    pass
+def update_save_games(save_dictionary):
+    """
+    Writes the save dictionary to the save file.
+    :param save_dictionary: Update save dictionary.
+    """
+
+    save_file = open(os.path.join(os.getcwd(), "Conf", "SGS.tmns"), mode="wb")
+    pickle.dump(save_dictionary, save_file)
+    save_file.close()
 
 
 def read_unlocked_races():
