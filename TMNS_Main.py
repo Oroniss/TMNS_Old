@@ -33,10 +33,10 @@ Current progress and changes.
 6/10/17: Added debug text and log.
 6/10/17: Finished up the Key Dictionary and did some general tidying up.
 6/10/17: Added version control.
+6/10/17: Added FOV and LOS - seem to be working ok.
 
 Next Steps
 
-Also get LOS and FOV working properly.
 Get save and load working correctly.
 
 Start version 02 - as a new branch.
@@ -896,12 +896,13 @@ class Interface(object):
     #                                       Display functions
     # --------------------------------------------------------------------------------------------------------
 
-    def draw_map(self, level=None, x_centre=None, y_centre=None):
+    def draw_map(self, level=None, x_centre=None, y_centre=None, visible_tiles=None):
         """
         Draws the provided map to the screen. Default is the current level centred on the player.
         :param level: integer array of tiles.
         :param x_centre: x_coordinate to centre on (only used if map is wider than display).
         :param y_centre: y_coordinate to centre on (only used if map is taller than display).
+        :param visible_tiles: Set of tiles that the player can see and so should be shown 'lit'
         """
 
         # Get default parameters if none were supplied
@@ -911,6 +912,8 @@ class Interface(object):
             x_centre = interface.game.player.x_loc
         if y_centre is None:
             y_centre = interface.game.player.y_loc
+        if visible_tiles is None:
+            visible_tiles = interface.game.player.visible_tiles
 
         # Do some math to determine the limits of what will be displayed
         x_min = 0
@@ -958,7 +961,8 @@ class Interface(object):
                 if not level.is_revealed(x, y):
                     self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor="Black")
                 else:
-                    bgcolor = level.get_bgcolor(x, y, True)
+                    # TODO: Likely need to split this into two cases when entities go in.
+                    bgcolor = level.get_bgcolor(x, y, (x, y) in visible_tiles)
                     self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=bgcolor)
                     # TODO: Also put the entity drawing in here as well.
 
@@ -1057,6 +1061,9 @@ class Player(object):
         self.y_loc = 54
         self.next_move = 0
 
+        self.view_distance = 8
+        self.visible_tiles = set()
+
         # TODO: Apply the racial modifiers.
         if unlock_level > 1:
             pass
@@ -1071,6 +1078,12 @@ class Player(object):
         """
 
         interface.add_output_text("")
+
+        # Update what the player can see.
+        self.visible_tiles = level.get_field_of_view(self.x_loc, self.y_loc, self.view_distance)
+
+        for tile in self.visible_tiles:
+            level.reveal_tile(*tile)
 
         while True:
             interface.update_game_screen()
@@ -1112,8 +1125,6 @@ class Player(object):
                     self.next_move += 10
 
                     timer.insert(self.next_move, self)
-                    for tile in level.get_adjacent_tiles(self.x_loc, self.y_loc):
-                        level.reveal_tile(*tile)  # TODO: Get rid of this.
                     break
 
                 else:
@@ -1129,10 +1140,25 @@ class MapLevel(object):
     Basic building block of the game experience.
     """
 
+    # Dictionary of tiles
     tile_dict = {  # Tile       bgcolor         fogcolor            description     allowLOS    minMove
         0:      ("wall",        "Stone Wall",   "Stone Wall",       "a wall",       False,      3),
         1:      ("floor",       "Stone Floor",  "Stone Floor Fog",  "",             True,       0),
         3:      ("space",       "Midnight Blue", "Midnight Blue Fog", "a long drop", True,      2)}
+
+    # Translation tables for the FOV and LOS calculations
+    #
+    #       0   3
+    #   1           2
+    #   6           5
+    #       7   4
+    #
+    octant_translate = (
+        (1, 0,  0,  -1, -1, 0,  0,  1),
+        (0, 1,  -1, 0,  0,  -1, 1,  0),
+        (0, 1,  1,  0,  0,  -1, -1, 0),
+        (1, 0,  0,  1,  -1, 0,  0,  -1)
+    )
 
     def __init__(self, level_name):
         """
@@ -1212,6 +1238,100 @@ class MapLevel(object):
 
         # TODO: Update this when furnishings go in.
         return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][4]
+
+    def get_field_of_view(self, x_loc, y_loc, view_distance):
+        """
+        Returns a set of (x, y) coordinate pairs that are in the field of view from the coordinate given.
+
+        FOV and light are largely taken from:
+        http://www.roguebasin.com/index.php?title=PythonShadowcastingImplementation
+        Page current at 16 January 2014
+
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :param view_distance: integer - how far the viewer can see (in tiles)
+        :return: A set of (x, y) coordinate pairs that are visible.
+        """
+
+        view_set = set()
+
+        # Go through each of the 8 octants and add the tiles in that direction to the view set
+        for octant in range(8):
+            self.cast_light(y_loc, x_loc, 1, 1.0, 0.0, view_distance,
+                            MapLevel.octant_translate[0][octant], MapLevel.octant_translate[1][octant],
+                            MapLevel.octant_translate[2][octant], MapLevel.octant_translate[3][octant], 0, view_set)
+        view_set.add((x_loc, y_loc))
+        return view_set
+
+    def cast_light(self, y_loc, x_loc, row, start, end, view_distance, xx, xy, yx, yy, recursion_number, view_set):
+        """
+
+        :param y_loc: integer - the y coordinate
+        :param x_loc: integer - the x coordinate
+        :param row: how many rows up from the horizontal we are currently scanning
+        :param start: gradient of the start point (usually 1.0 but can be less in child scans if there were blockages)
+        :param end: gradient of the end point (usually 0.0, but as above)
+        :param view_distance: The distance in tiles that the viewer can see.
+        :param xx: octant translate of xx
+        :param xy: octant translate of xy
+        :param yx: octant translate of yx
+        :param yy: octant translate of yy
+        :param recursion_number: Number of levels into the child scans we are
+        :param view_set: Currently found lit tiles
+        :return: None - Function updates the provided view set as a side effect
+        """
+
+        # Since it's defined recursively, end if initial conditions aren't met.
+        if start < end:
+            return
+
+        view_distance_squared = view_distance * view_distance
+        new_start = start
+
+        # Loop through the tiles in the current row
+        for j in range(row, view_distance + 1):
+
+            dx, dy = -j-1, -j
+            blocked = False
+
+            # Look at the tile in the next row
+            while dx <= 0:
+                dx += 1
+                # Translate into map coordinates
+                map_x, map_y = x_loc + dx * xx + dy * xy, y_loc + dx * yx + dy * yy
+
+                # l_slope and r_slope are the slopes at the left and right
+                # extremities of the square we are considering
+                l_slope, r_slope = (dx - 0.5) / (dy + 0.5), (dx + 0.5) / (dy - 0.5)
+
+                if start <= r_slope:
+                    continue
+                elif end >= l_slope:
+                    break
+                else:
+                    # We can see this square
+                    if dx * dx + dy * dy < view_distance_squared:
+                        view_set.add((map_x, map_y))
+                    if blocked:
+                        # We are scanning blocked squares
+                        if not self.is_valid_map_coord(map_x, map_y) or not self.allow_los(map_x, map_y):
+                            new_start = r_slope
+                            continue
+                        else:
+                            blocked = False
+                            start = new_start
+                    else:
+                        if ((not self.is_valid_map_coord(map_x, map_y) or not self.allow_los(map_x, map_y))
+                                and j <= view_distance):
+                            # Start a child scan
+                            blocked = True
+                            self.cast_light(y_loc, x_loc, j + 1, start, l_slope, view_distance, xx, xy, yx, yy,
+                                            recursion_number + 1, view_set)
+                            new_start = r_slope
+
+            # Row is scanned, do next row unless last tile is blocked
+            if blocked:
+                break
 
     def get_adjacent_tiles(self, x_loc, y_loc, centre=False):
         """
