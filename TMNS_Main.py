@@ -5,6 +5,8 @@ from the Halfbreed work into the game.
 
 It is all going to reside in a single file though, just for the sake of convenience.
 
+Changelog for version 01
+
 Current progress and changes.
 
 3/10/17: Started again
