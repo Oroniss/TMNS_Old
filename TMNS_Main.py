@@ -368,6 +368,8 @@ class Interface(object):
             self.DB_HEIGHT = self.WINDOW_HEIGHT - self.DB_TOP - 2
             self.db_display = (self.DB_LEFT, self.DB_TOP, self.DB_WIDTH, self.DB_HEIGHT)
 
+            self.debug_messages = [""] * self.DB_HEIGHT
+
         pygame.init()
         self.window = pygcurse.PygcurseWindow(self.WINDOW_WIDTH, self.WINDOW_HEIGHT, "The Mausoleum of Nightscale",
                                               fgcolor="Black", bgcolor="Black")
@@ -377,7 +379,6 @@ class Interface(object):
             self.run_config()
 
         self.game_messages = [("", "White")] * self.TEXT_HEIGHT
-        self.debug_messages = [""] * self.DB_HEIGHT
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Input functions
@@ -954,9 +955,12 @@ class Interface(object):
         # Draw the actual map.
         for y in range(y_min, y_max):
             for x in range(x_min, x_max):
-                bgcolor = level.get_bgcolor(x, y, True)
-                self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=bgcolor)
-                # TODO: Also put the entity drawing in here as well.
+                if not level.is_revealed(x, y):
+                    self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor="Black")
+                else:
+                    bgcolor = level.get_bgcolor(x, y, True)
+                    self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=bgcolor)
+                    # TODO: Also put the entity drawing in here as well.
 
         self.window.putchar("@", x=self.game.player.x_loc + x_offset, y=self.game.player.y_loc + y_offset,
                             bgcolor=None, fgcolor="black")
@@ -1155,6 +1159,7 @@ class MapLevel(object):
         self.entry_text = level_details[9::]
 
         self.map_grid = LEVEL_MAPS[level_name]
+        # noinspection PyUnusedLocal
         self.revealed = [[False] * len(self.map_grid[0]) for i in self.map_grid]
 
         # TODO: Get all the other objects here
@@ -1217,6 +1222,7 @@ class MapLevel(object):
         :param y_loc: integer - the y coordinate
         """
 
+        # TODO: Think about whether these should be done as asserts so they can be skipped.
         if not self.is_valid_map_coord(x_loc, y_loc):
             interface.add_debug_text("Tried to reveal invalid coordinate {}, {} for level {}".format(
                 x_loc, y_loc, self.level_name))
@@ -1232,6 +1238,7 @@ class MapLevel(object):
         :return: True if the tile has been revealed, False otherwise
         """
 
+        # TODO: Think about whether these should be done as asserts so they can be skipped.
         if not self.is_valid_map_coord(x_loc, y_loc):
             interface.add_debug_text("Checked reveal of invalid coordinate {}, {} for level {}".format(
                 x_loc, y_loc, self.level_name))
