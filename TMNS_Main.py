@@ -1112,6 +1112,8 @@ class Player(object):
                     self.next_move += 10
 
                     timer.insert(self.next_move, self)
+                    for tile in level.get_adjacent_tiles(self.x_loc, self.y_loc):
+                        level.reveal_tile(*tile)  # TODO: Get rid of this.
                     break
 
                 else:
@@ -1194,6 +1196,40 @@ class MapLevel(object):
             return False
 
         return move_type >= MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][5]
+
+    def allow_los(self, x_loc, y_loc):
+        """
+        Checks whether the specified tile allows visibility or not.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :return: True if the tile allows visibility, False otherwise
+        """
+
+        if not self.is_valid_map_coord(x_loc, y_loc):
+            interface.add_debug_text("Checked los on an invalid coordinate {}, {}, level = {}".format(
+                x_loc, y_loc, self.level_name))
+            return False
+
+        # TODO: Update this when furnishings go in.
+        return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][4]
+
+    def get_adjacent_tiles(self, x_loc, y_loc, centre=False):
+        """
+        Gets a list of valid tiles adjacent to the specified location
+        :param x_loc: integer - The x coordinate
+        :param y_loc: integer - The y coordinate
+        :param centre: whether the specified tile should be included.
+        :return: a list of (x, y) tuple tiles coordinates.
+        """
+
+        tile_list = []
+
+        for y in (-1, 0, 1):
+            for x in (-1, 0, 1):
+                if self.is_valid_map_coord(x_loc + x, y_loc + y) and (x != 0 or y != 0 or centre):
+                    tile_list.append((x_loc + x, y_loc + y))
+
+        return tile_list
 
     def get_bgcolor(self, x_loc, y_loc, in_view):
         """
