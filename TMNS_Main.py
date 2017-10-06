@@ -231,8 +231,6 @@ class Interface(object):
     Also handles the new game setup, etc.
     """
 
-    # TODO: Add num-pad keys.
-    # TODO: Make sure the num-pad keys align with the extra keys functions
     key_dictionary = {
         # Special Keys
         pygcurse.K_ESCAPE:      "Escape",
@@ -245,6 +243,15 @@ class Interface(object):
         pygcurse.K_RIGHT:       "Right",
         pygcurse.K_UP:          "Up",
         pygcurse.K_DOWN:        "Down",
+        # Key-pad Keys
+        pygcurse.K_KP4:         "Left",
+        pygcurse.K_KP6:         "Right",
+        pygcurse.K_KP8:         "Up",
+        pygcurse.K_KP2:         "Down",
+        pygcurse.K_KP7:         "Up_Left",
+        pygcurse.K_KP9:         "Up_Right",
+        pygcurse.K_KP1:         "Down_Left",
+        pygcurse.K_KP3:         "Down_Right",
         # Other Character Keys
         pygcurse.K_PERIOD:      ".",
         pygcurse.K_COMMA:       ",",
@@ -869,8 +876,8 @@ class Interface(object):
         """ Adds the extra laptop keys to the key dictionary. """
         Interface.key_dictionary[pygcurse.K_SEMICOLON] = "Down_Left"
         Interface.key_dictionary[pygcurse.K_QUOTE] = "Down_Right"
-        Interface.key_dictionary[pygcurse.K_LEFTBRACKET] = "Up Left"
-        Interface.key_dictionary[pygcurse.K_RIGHTBRACKET] = "Up Right"
+        Interface.key_dictionary[pygcurse.K_LEFTBRACKET] = "Up_Left"
+        Interface.key_dictionary[pygcurse.K_RIGHTBRACKET] = "Up_Right"
 
     @staticmethod
     def remove_extra_keys():
