@@ -36,10 +36,10 @@ Current progress and changes.
 6/10/17: Added FOV and LOS - seem to be working ok.
 6/10/17: Started work on save game functionality.
 7/10/17: Got save and load game working correctly.
+7/10/17: Added a get confirmation function.
+7/10/17: Did some general tidying and fixing up TODO messages..
 
 Next Steps
-
-Get save and load working correctly.
 
 Start version 02 - as a new branch.
 
@@ -400,7 +400,24 @@ class Interface(object):
                     return Interface.key_dictionary[event.key]
 
     def get_confirmation(self, message):
-        pass
+        """
+        Gets a yes or no answer from the player.
+        Can only be used in the actual game, not from starting menus.
+        :param message: Message prompt to seek confirmation over.
+        :return: True or False - corresponding to Yes or No
+        """
+
+        self.add_output_text("Y or N?", color="Red")
+        self.add_output_text(message)
+
+        self.update_game_screen()
+
+        while True:
+            key = Interface.get_next_key()
+            if key == "Y":
+                return True
+            elif key == "N":
+                return False
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Message functions
@@ -436,8 +453,11 @@ class Interface(object):
         """
 
         log_file = open(os.path.join(os.getcwd(), "Conf", "TMNS_Log.txt"), mode="a")
-        # TODO: Add the additional info to the message - level, class, char name, x loc, y loc.
+        log_file.write("{}, {}, {}, x = {}, y = {}".format(self.game.player.name, self.game.character_class,
+                                                           self.game.current_level, self.game.player.x_loc,
+                                                           self.game.player.y_loc))
         log_file.write(message)
+        log_file.write("")
         log_file.close()
 
         if self.gm_view:
@@ -584,180 +604,6 @@ class Interface(object):
                     page_index -= 1
                 elif key == "Right" and (page_index + 1) * 10 < len(character_list):
                     page_index += 1
-
-    def choose_name(self, save_dictionary=None):
-        """
-        Gets the player to choose a name for their character.
-        :param save_dictionary: The current save dictionary - used to check the name isn't taken
-        :return: The player's name
-        """
-
-        if save_dictionary is None:
-            save_dictionary = read_save_games()
-
-        allowed_chars = list(string.ascii_uppercase)
-        name = ""
-
-        while True:
-            self.window.fill(bgcolor="Silver", region=self.menu_display)
-
-            self.window.write("What is your name: {}".format(name), x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
-                              bgcolor="Silver", fgcolor="Black")
-            self.window.write("Enter to finish, Escape to quit", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 10,
-                              bgcolor="Silver", fgcolor="Black")
-            self.window.update()
-
-            key = Interface.get_next_key()
-
-            if key == "Delete" or key == "Backspace":
-                if len(name) > 0:
-                    name = name[0:-1]
-            elif key == "Escape":
-                pygame.quit()
-                sys.exit(0)
-            elif key == "Enter":
-                if len(name) - name.count(" ") < 4:
-                    self.window.write("Names must be at least 4 letters long", x=self.MENU_LEFT + 5,
-                                      y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
-                    self.window.update()
-                    Interface.get_next_key()
-                elif name in save_dictionary:
-                    self.window.write("That name is already taken", x=self.MENU_LEFT + 5,
-                                      y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
-                    self.window.update()
-                    Interface.get_next_key()
-                else:
-                    return name
-
-            elif key == "Space":
-                name += " "
-            elif key in allowed_chars:
-                if len(name) < 20:
-                    name += key
-                    name = name.title()
-                else:
-                    self.window.write("Names can be at most 20 characters long", x=self.MENU_LEFT + 5,
-                                      y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
-                    self.window.update()
-                    Interface.get_next_key()
-            else:
-                self.window.write("Names can only contain letters and spaces", x=self.MENU_LEFT + 5,
-                                  y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
-                self.window.update()
-                Interface.get_next_key()
-
-    def choose_race(self, racial_dictionary=None):
-        """
-        Selects a race from the available options.
-        :param racial_dictionary: A dictionary of available races, along with the level they are unlocked at.
-        :return: (string, int) - The chosen race and unlock level.
-        """
-
-        if racial_dictionary is None:
-            racial_dictionary = read_unlocked_races()
-
-        options = [list(), list(), list(), list()]
-        for key, val in racial_dictionary.items():
-            options[val // 10].append((key, val))
-
-        for option_list in options:
-            option_list.sort()
-
-        selected_tier = -1
-        while True:
-            self.window.fill(bgcolor="Silver", region=self.menu_display)
-            self.window.write("What is your race?", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
-                              bgcolor="Silver", fgcolor="Black")
-            self.window.write("Backspace to deselect a tier, Escape to quit", x=self.MENU_LEFT + 5,
-                              y=self.MENU_TOP + 35, bgcolor="Silver", fgcolor="Black")
-
-            for tier in range(len(options)):
-                if selected_tier != -1 and tier != selected_tier:
-                    continue
-
-                self.window.write("Tier {}".format(tier + 1), x=self.MENU_LEFT + 2 + 18 * tier,
-                                  y=self.MENU_TOP + 10, bgcolor="Silver", fgcolor="Black")
-
-                for i in range(len(options[tier])):
-                    fgcolor = "Red"
-                    if options[tier][i][1] % 10 > 0:
-                        fgcolor = "Black"
-                    self.window.write("{}: {}".format((i+1) % 10, options[tier][i][0]),
-                                      x=self.MENU_LEFT + 2 + 18 * tier,
-                                      y=self.MENU_TOP + 13 + 2 * i, bgcolor="Silver", fgcolor=fgcolor)
-
-            self.window.update()
-            key = Interface.get_next_key()
-            if key == "Escape":
-                pygame.quit()
-                sys.exit(0)
-            elif selected_tier == -1 and key in "1234":
-                selected_tier = int(key) - 1
-            elif selected_tier != -1 and key == "Backspace":
-                selected_tier = -1
-            elif selected_tier != -1 and key in "1234567890":
-                choice = int(key) - 1
-                if choice < 0:
-                    choice += 10
-                if choice < len(options[selected_tier]) and options[selected_tier][choice][1] % 10 > 0:
-                    return options[selected_tier][choice]
-
-    def choose_character_class(self):
-        """
-        Picks a character class for a new character.
-        :return: The string name of the character class
-        """
-
-        options = ["Fighter", "Magic-User", "Thief", "Bard", "Paladin", "Ranger"]
-        keys = "123456"
-        if self.gm_view:
-            options.append("GM")
-            keys += "7"
-
-        self.window.fill(bgcolor="Silver", region=self.menu_display)
-        self.window.write("What is your calling?", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
-                          bgcolor="Silver", fgcolor="Black")
-
-        for index, char_class in enumerate(options):
-            self.window.write("{}: {}".format(index + 1, char_class), x=self.MENU_LEFT + 5,
-                              y=self.MENU_TOP + 8 + 2 * index, bgcolor="Silver", fgcolor="Black")
-
-        self.window.update()
-        while True:
-            key = Interface.get_next_key()
-
-            if key in keys:
-                return options[int(key) - 1]
-            elif key == "Escape":
-                pygame.quit()
-                sys.exit(0)
-
-    def set_gm_game_options(self):
-        """
-        For now just returns the starting location, but in the future could add additional aspects.
-        For example auto-levelling, adding equipment, etc.
-        :return: (level_name, x_loc, y_loc)
-        """
-
-        starting_loc = (("Standard", "Level1a", 24, 54), ("Dragon", "Level1a", 7, 7),
-                        ("Kobold Sorcerer", "Level1a", 45, 4), ("Kobold Ranger", "Level1a", 10, 12))
-
-        # TODO: Think about what else could go in here.
-        self.window.fill(bgcolor="Silver", region=self.menu_display)
-        self.window.write("Select starting location", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
-                          bgcolor="Silver", fgcolor="Black")
-        for i in range(len(starting_loc)):
-            self.window.write("{}: Level = {}, location = {}".format(i+1, starting_loc[i][1], starting_loc[i][0]),
-                              x=self.MENU_LEFT + 5, y=self.MENU_TOP + 10 + 2 * i, bgcolor="Silver", fgcolor="Black")
-        self.window.update()
-        while True:
-            key = Interface.get_next_key()
-
-            if key in "1234567890"[0:len(starting_loc)]:
-                return starting_loc[int(key)-1][1::]
-            elif key == "Escape":
-                pygame.quit()
-                sys.exit(0)
 
     def view_commands(self):
         """
@@ -945,6 +791,180 @@ class Interface(object):
                 pickle.dump((self.size, self.extra_keys, self.gm_view), config_file)
                 config_file.close()
                 return
+
+    def choose_name(self, save_dictionary=None):
+        """
+        Gets the player to choose a name for their character.
+        :param save_dictionary: The current save dictionary - used to check the name isn't taken
+        :return: The player's name
+        """
+
+        if save_dictionary is None:
+            save_dictionary = read_save_games()
+
+        allowed_chars = list(string.ascii_uppercase)
+        name = ""
+
+        while True:
+            self.window.fill(bgcolor="Silver", region=self.menu_display)
+
+            self.window.write("What is your name: {}".format(name), x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
+                              bgcolor="Silver", fgcolor="Black")
+            self.window.write("Enter to finish, Escape to quit", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 10,
+                              bgcolor="Silver", fgcolor="Black")
+            self.window.update()
+
+            key = Interface.get_next_key()
+
+            if key == "Delete" or key == "Backspace":
+                if len(name) > 0:
+                    name = name[0:-1]
+            elif key == "Escape":
+                pygame.quit()
+                sys.exit(0)
+            elif key == "Enter":
+                if len(name) - name.count(" ") < 4:
+                    self.window.write("Names must be at least 4 letters long", x=self.MENU_LEFT + 5,
+                                      y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
+                    self.window.update()
+                    Interface.get_next_key()
+                elif name in save_dictionary:
+                    self.window.write("That name is already taken", x=self.MENU_LEFT + 5,
+                                      y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
+                    self.window.update()
+                    Interface.get_next_key()
+                else:
+                    return name
+
+            elif key == "Space":
+                name += " "
+            elif key in allowed_chars:
+                if len(name) < 20:
+                    name += key
+                    name = name.title()
+                else:
+                    self.window.write("Names can be at most 20 characters long", x=self.MENU_LEFT + 5,
+                                      y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
+                    self.window.update()
+                    Interface.get_next_key()
+            else:
+                self.window.write("Names can only contain letters and spaces", x=self.MENU_LEFT + 5,
+                                  y=self.MENU_TOP + 8, bgcolor="Silver", fgcolor="Red")
+                self.window.update()
+                Interface.get_next_key()
+
+    def choose_race(self, racial_dictionary=None):
+        """
+        Selects a race from the available options.
+        :param racial_dictionary: A dictionary of available races, along with the level they are unlocked at.
+        :return: (string, int) - The chosen race and unlock level.
+        """
+
+        if racial_dictionary is None:
+            racial_dictionary = read_unlocked_races()
+
+        options = [list(), list(), list(), list()]
+        for key, val in racial_dictionary.items():
+            options[val // 10].append((key, val))
+
+        for option_list in options:
+            option_list.sort()
+
+        selected_tier = -1
+        while True:
+            self.window.fill(bgcolor="Silver", region=self.menu_display)
+            self.window.write("What is your race?", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
+                              bgcolor="Silver", fgcolor="Black")
+            self.window.write("Backspace to deselect a tier, Escape to quit", x=self.MENU_LEFT + 5,
+                              y=self.MENU_TOP + 35, bgcolor="Silver", fgcolor="Black")
+
+            for tier in range(len(options)):
+                if selected_tier != -1 and tier != selected_tier:
+                    continue
+
+                self.window.write("Tier {}".format(tier + 1), x=self.MENU_LEFT + 2 + 18 * tier,
+                                  y=self.MENU_TOP + 10, bgcolor="Silver", fgcolor="Black")
+
+                for i in range(len(options[tier])):
+                    fgcolor = "Red"
+                    if options[tier][i][1] % 10 > 0:
+                        fgcolor = "Black"
+                    self.window.write("{}: {}".format((i+1) % 10, options[tier][i][0]),
+                                      x=self.MENU_LEFT + 2 + 18 * tier,
+                                      y=self.MENU_TOP + 13 + 2 * i, bgcolor="Silver", fgcolor=fgcolor)
+
+            self.window.update()
+            key = Interface.get_next_key()
+            if key == "Escape":
+                pygame.quit()
+                sys.exit(0)
+            elif selected_tier == -1 and key in "1234":
+                selected_tier = int(key) - 1
+            elif selected_tier != -1 and key == "Backspace":
+                selected_tier = -1
+            elif selected_tier != -1 and key in "1234567890":
+                choice = int(key) - 1
+                if choice < 0:
+                    choice += 10
+                if choice < len(options[selected_tier]) and options[selected_tier][choice][1] % 10 > 0:
+                    return options[selected_tier][choice]
+
+    def choose_character_class(self):
+        """
+        Picks a character class for a new character.
+        :return: The string name of the character class
+        """
+
+        options = ["Fighter", "Magic-User", "Thief", "Bard", "Paladin", "Ranger"]
+        keys = "123456"
+        if self.gm_view:
+            options.append("GM")
+            keys += "7"
+
+        self.window.fill(bgcolor="Silver", region=self.menu_display)
+        self.window.write("What is your calling?", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
+                          bgcolor="Silver", fgcolor="Black")
+
+        for index, char_class in enumerate(options):
+            self.window.write("{}: {}".format(index + 1, char_class), x=self.MENU_LEFT + 5,
+                              y=self.MENU_TOP + 8 + 2 * index, bgcolor="Silver", fgcolor="Black")
+
+        self.window.update()
+        while True:
+            key = Interface.get_next_key()
+
+            if key in keys:
+                return options[int(key) - 1]
+            elif key == "Escape":
+                pygame.quit()
+                sys.exit(0)
+
+    def set_gm_game_options(self):
+        """
+        For now just returns the starting location, but in the future could add additional aspects.
+        For example auto-levelling, adding equipment, etc.
+        :return: (level_name, x_loc, y_loc)
+        """
+
+        starting_loc = (("Standard", "Level1a", 24, 54), ("Dragon", "Level1a", 7, 7),
+                        ("Kobold Sorcerer", "Level1a", 45, 4), ("Kobold Ranger", "Level1a", 10, 12))
+
+        # TODO: Think about what else could go in here.
+        self.window.fill(bgcolor="Silver", region=self.menu_display)
+        self.window.write("Select starting location", x=self.MENU_LEFT + 5, y=self.MENU_TOP + 5,
+                          bgcolor="Silver", fgcolor="Black")
+        for i in range(len(starting_loc)):
+            self.window.write("{}: Level = {}, location = {}".format(i+1, starting_loc[i][1], starting_loc[i][0]),
+                              x=self.MENU_LEFT + 5, y=self.MENU_TOP + 10 + 2 * i, bgcolor="Silver", fgcolor="Black")
+        self.window.update()
+        while True:
+            key = Interface.get_next_key()
+
+            if key in "1234567890"[0:len(starting_loc)]:
+                return starting_loc[int(key)-1][1::]
+            elif key == "Escape":
+                pygame.quit()
+                sys.exit(0)
 
     def save_game(self):  # Character Name, character class, character level, dungeon level, time.
         """
@@ -1221,10 +1241,11 @@ class Player(object):
             y_dif = 0
             move = False
             if key == "Escape":
-                # TODO: Add confirmation before quitting, then before saving.
-                interface.save_game()
-                pygame.quit()
-                sys.exit(0)
+                if interface.get_confirmation("Really quit?"):
+                    if interface.get_confirmation("Save current game?"):
+                        interface.save_game()
+                    pygame.quit()
+                    sys.exit(0)
             elif key == "Up":
                 y_dif = -1
                 move = True
@@ -1349,7 +1370,8 @@ class MapLevel(object):
         # TODO: Update as furnishings and actors go in
         # TODO: Update as movement types go in
         if not self.is_valid_map_coord(x_loc, y_loc):
-            # TODO: Print a debug message here.
+            interface.add_debug_text("Checked passible for non-existent map coordinate, x = {}, y = {}".format(
+                x_loc, y_loc))
             return False
 
         return move_type >= MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][5]
