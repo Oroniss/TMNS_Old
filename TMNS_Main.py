@@ -35,6 +35,7 @@ Current progress and changes.
 6/10/17: Added version control.
 6/10/17: Added FOV and LOS - seem to be working ok.
 6/10/17: Started work on save game functionality.
+7/10/17: Got save and load game working correctly.
 
 Next Steps
 
@@ -398,6 +399,9 @@ class Interface(object):
                 if event.type == pygcurse.KEYDOWN and event.key in Interface.key_dictionary:
                     return Interface.key_dictionary[event.key]
 
+    def get_confirmation(self, message):
+        pass
+
     # --------------------------------------------------------------------------------------------------------
     #                                       Message functions
     # --------------------------------------------------------------------------------------------------------
@@ -552,8 +556,34 @@ class Interface(object):
 
                 self.window.update()
                 key = Interface.get_next_key()
+
+                character = False
+                if key in "123456789":
+                    if (int(key)) <= i + 1:
+                        character = character_list[page_index * 10 + int(key) - 1]
+                elif key == "0":
+                    if i == 9:
+                        character = character_list[page_index * 10 + 9]
+
+                if character:
+                    success = self.load_game(save_dictionary[character])
+                    del save_dictionary[character]
+                    update_save_games(save_dictionary)
+
+                    if success:
+                        return True
+                    else:
+                        self.window.write("Something is wrong with that save game sorry", x=self.MENU_LEFT + 5,
+                                          y=self.MENU_TOP + 30, bgcolor="Silver", fgcolor="Black")
+                        self.window.update()
+                        Interface.get_next_key()
+
                 if key == "Escape":
                     return False
+                elif key == "Left" and page_index > 0:
+                    page_index -= 1
+                elif key == "Right" and (page_index + 1) * 10 < len(character_list):
+                    page_index += 1
 
     def choose_name(self, save_dictionary=None):
         """
@@ -928,6 +958,10 @@ class Interface(object):
                                             self.game.timer.current_time)
         update_save_games(save_dict)
 
+        # Insert the player back into the timer and anything left in the current actors back into the queue.
+        self.game.timer.current_actors.insert(0, self.game.player)
+        self.game.timer.queue[self.game.timer.current_time] = self.game.timer.current_actors
+
         # TODO: Make sure any clean up that needs to happen before this is maintained.
         # Create the actual save file
         file_name = self.game.player.name.replace(" ", "_")
@@ -962,7 +996,7 @@ class Interface(object):
             self.game = game
             return True
 
-        except (AttributeError, NameError, ValueError, IOError):
+        except (AttributeError, NameError, ValueError, IOError, EOFError):
             # Mostly here to catch malformed game object, which doesn't have the correct attributes, etc.
             return False
 
