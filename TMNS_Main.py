@@ -5,43 +5,14 @@ from the Halfbreed work into the game.
 
 It is all going to reside in a single file though, just for the sake of convenience.
 
-Changelog for version 01
+Changelog for version 02
 
 Current progress and changes.
 
-3/10/17: Started again
-3/10/17: Got the basic interface definition setup.
-3/10/17: Got the initial console up and running.
-3/10/17: Got the config menu running, even if it doesn't actually do anything yet.
-3/10/17: Get the main menu up and running.
-4/10/17: Added the beginnings of the MapLevel class
-4/10/17: Also added the draw map function.
-4/10/17: Updated some data things - colors, tile dictionary.
-4/10/17: Actually got basic map drawing happening.
-4/10/17: Got some of the new game menus / sequence working (sort of).
-4/10/17: Got basic player in and  moving.
-4/10/17: Started adding some functions to the MapLevel
-5/10/17: Added the select racial options into new game menus.
-5/10/17: Added gm starting location and tidied up some code. All clean now :-).
-5/10/17: Begun the level transition function - still needs a bunch of work though.
-5/10/17: Added the Timer class in.
-5/10/17: Get next move added to the Player class, and game engine now driving things correctly.
-5/10/17: Added the actor related functions to the MapLevel class
-5/10/17: Added the view commands option.
-6/10/17: Added the view back-story option.
-6/10/17: Added output text and display
-6/10/17: Added debug text and log.
-6/10/17: Finished up the Key Dictionary and did some general tidying up.
-6/10/17: Added version control.
-6/10/17: Added FOV and LOS - seem to be working ok.
-6/10/17: Started work on save game functionality.
-7/10/17: Got save and load game working correctly.
-7/10/17: Added a get confirmation function.
-7/10/17: Did some general tidying and fixing up TODO messages..
+7/10/17: Added the base entity class and started the data dictionary.
+
 
 Next Steps
-
-Start version 02 - as a new branch.
 
 Build an Entity base class.
 Build an Actor base class.
@@ -82,6 +53,7 @@ import pickle
 import string
 import textwrap
 from TMNS_Levels import *
+from TMNS_Data_Dictionaries import *
 
 
 ##################################################################################################################
@@ -309,6 +281,7 @@ class Interface(object):
         """
 
         self.game = None
+        self.version_number = "0.02"  # TODO: Keep this up to date
 
         # Now process the interface specific parameters.
         config = False
@@ -983,6 +956,7 @@ class Interface(object):
         self.game.timer.queue[self.game.timer.current_time] = self.game.timer.current_actors
 
         # TODO: Make sure any clean up that needs to happen before this is maintained.
+        # TODO: Store the version number somewhere along with updating entity ID class attributes.
         # Create the actual save file
         file_name = self.game.player.name.replace(" ", "_")
         save_file = open(os.path.join(os.getcwd(), "Saves", file_name), mode="wb")
@@ -995,6 +969,8 @@ class Interface(object):
         :param character_details: A tuple of (Name, C_Class, C_Level, Dungeon_level, time).
         :return: True if loaded successfully, False otherwise.
         """
+
+        # TODO: Need to verify the game version number and write a function to update accordingly.
 
         file_name = character_details[0].replace(" ", "_")
         if not os.path.exists(os.path.join(os.getcwd(), "Saves", file_name)):
@@ -1183,6 +1159,44 @@ class Interface(object):
 
 
 ##################################################################################################################
+#                                       Entity class definition
+##################################################################################################################
+
+class Entity(object):
+    """
+    Basic class for anything that shows up in the game - Actors, Items and Furnishings.
+    Likely to end up being fairly slim
+    """
+
+    entity_id = 0
+
+    def __init__(self, entity_name, x_loc=None, y_loc=None):
+        """
+        Basic setup for an entity.
+        :param entity_name: string - self explanatory.
+        :param x_loc: integer - the x coordinate - None if not going on the map.
+        :param y_loc: integer - the y coordinate - None if not going on the map.
+        """
+
+        self.entity_id = Entity.entity_id
+        Entity.entity_id += 1
+
+        self.x_loc = x_loc
+        self.y_loc = y_loc
+
+        # Lookup everything else in the data dictionary.
+        details = entity_dictionary[entity_name]
+        self.symbol = details[0]
+        self.fgcolor = details[1]
+
+    def process_damage(self, damage_amount, damage_type, attack, attacker):
+        pass
+
+    def __str__(self):
+        pass
+
+
+##################################################################################################################
 #                                       Player class definition
 ##################################################################################################################
 
@@ -1200,7 +1214,7 @@ class Player(object):
         :param character_class: String - the player's character class
         """
 
-        self.actor_id = 0
+        self.entity_id = 0
         self.name = name
         self.race = race
         self.character_class = character_class
@@ -1592,7 +1606,7 @@ class MapLevel(object):
                 actor.x_loc, actor.y_loc, self.actors_locations[(actor.x_loc, actor.y_loc)]))
             return
 
-        self.actors_ids[actor.actor_id] = actor
+        self.actors_ids[actor.entity_id] = actor
 
         if actor.x_loc is None and actor.y_loc is None:
             return
@@ -1609,12 +1623,12 @@ class MapLevel(object):
         :param actor: The actor to remove.
         """
 
-        if actor.actor_id not in self.actors_ids:
+        if actor.entity_id not in self.actors_ids:
             interface.add_debug_text("Tried to remove actor {} with id {} but it wasn't there".format(
-                actor, actor.actor_id))
+                actor, actor.entity_id))
             return
 
-        del self.actors_ids[actor.actor_id]
+        del self.actors_ids[actor.entity_id]
 
         if actor.x_loc is None and actor.y_loc is None:
             return
@@ -1643,6 +1657,8 @@ class Game(object):
         :param player: The player character for the game.
         :param gm_options:
         """
+
+        self.version_number = "0.02"  # TODO: Keep this up to date
 
         self.player = player
         self.character_class = player.character_class
