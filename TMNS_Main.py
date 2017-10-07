@@ -480,7 +480,8 @@ class Interface(object):
                 self.game = Game(*self.new_game_menus())
                 self.game.run_game()
             elif key == "2":
-                pass
+                if self.load_game_menu():
+                    self.game.run_game()
             elif key == "3":
                 pass
             elif key == "4":
@@ -514,7 +515,45 @@ class Interface(object):
             return player, gm_options
 
     def load_game_menu(self):
-        pass
+        """
+        Displays the list of available save games.
+        :return: True if one was loaded correctly, False otherwise.
+        """
+
+        save_dictionary = read_save_games()
+        page_index = 0
+
+        while True:
+
+            self.window.fill(bgcolor="Silver", region=self.menu_display)
+
+            # Case where there are no save games.
+            if len(save_dictionary) == 0:
+
+                self.window.write("Sorry, it looks like there are no existing characters", x=self.MENU_LEFT + 10,
+                                  y=self.MENU_TOP + 10, bgcolor="Silver", fgcolor="Black")
+                self.window.write("Press Escape or F to return", x=self.MENU_LEFT + 10, y=self.MENU_TOP + 12,
+                                  bgcolor="Silver", fgcolor="Black")
+                self.window.update()
+                key = Interface.get_next_key()
+                if key == "Escape" or key == "F":
+                    return False
+
+            # Case where we have to display some.
+            else:
+                character_list = sorted(save_dictionary.keys())
+                for i in range(page_index * 10, min(len(character_list), (page_index + 1) * 10)):
+                    character_details = save_dictionary[character_list[i]]
+                    self.window.write("{}: {}, lvl {} {} on {}".format(i % 10 + 1, character_details[0],
+                                                                       character_details[2],
+                                                                       character_details[1], character_details[3]),
+                                      x=self.MENU_LEFT + 5, y=self.MENU_TOP + 10 + 2 * (i % 10),
+                                      bgcolor="Silver", fgcolor="Black")
+
+                self.window.update()
+                key = Interface.get_next_key()
+                if key == "Escape":
+                    return False
 
     def choose_name(self, save_dictionary=None):
         """
@@ -885,7 +924,7 @@ class Interface(object):
         # Update the summary save dictionary
         save_dict = read_save_games()
         save_dict[self.game.player.name] = (self.game.player.name, self.game.player.character_class,
-                                            self.game.player.character_level, self.game.current_level.level_name,
+                                            self.game.player.character_level, self.game.current_level.level_title,
                                             self.game.timer.current_time)
         update_save_games(save_dict)
 
@@ -915,8 +954,9 @@ class Interface(object):
 
             # Now validate the save file
             if (game.player.name != character_details[0] or game.player.character_class != character_details[1] or
-                game.player.character_level != character_details[2] or game.current_level.name != character_details[3]
-                    or game.timer.current_time != character_details[4]):
+                game.player.character_level != character_details[2] or
+                    game.current_level.level_title != character_details[3] or
+                    game.timer.current_time != character_details[4]):
                 return False
 
             self.game = game
@@ -1147,6 +1187,8 @@ class Player(object):
             y_dif = 0
             move = False
             if key == "Escape":
+                # TODO: Add confirmation before quitting, then before saving.
+                interface.save_game()
                 pygame.quit()
                 sys.exit(0)
             elif key == "Up":

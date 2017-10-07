@@ -1889,7 +1889,7 @@ class PygcurseInput():
             self.cursor += 1
 
 
-    def paste(text):
+    def paste(self, text):
         """
         Inserts the string text into the buffer at the position of the cursor. This does not actually use the system's clipboard, it only pastes from the text parameter.
         """
