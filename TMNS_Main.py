@@ -53,6 +53,7 @@ import pickle
 import string
 import textwrap
 import collections
+import copy
 from TMNS_Levels import *
 from TMNS_Data_Dictionaries import *
 
@@ -1193,18 +1194,17 @@ class Entity(object):
         self.effects = []
 
         # Lookup everything else in the data dictionary.
-        details = entity_dictionary[entity_name]
-        self.symbol = details[0]
-        self.fgcolor = details[1]
-
-        # Simple attributes
+        self.symbol = " "
+        self.fgcolor = "Black"
         self.current_hp = 1
         self.max_hp = 1
+
+        # Simple attributes
         self.visibility = 0
         self.player_spotted = True
 
-        # Defensive stats
-        self.armor_class = 0
+        # Defensive stats - Set in the derived classes
+        self.armor_class = 10
         self.damage_reduction = 0
         self.hardness = 0
         self.spell_resist = 0
@@ -1213,13 +1213,10 @@ class Entity(object):
         self.elec_res = 0
         self.fire_res = 0
         self.necr_res = 0
+
         self.fort = 0
         self.refl = 0
         self.will = 0
-
-        # Add any traits that apply
-        for trait in entity_traits[entity_name]:
-            self.add_trait(trait)
 
     # TODO: Think through what arguments this should take
     def process_damage(self, damage_amount, damage_type, attack, attacker):
@@ -1291,15 +1288,56 @@ class Actor(Entity):
 
         Entity.__init__(self, entity_name)
 
-        # Actor specific traits
-        self.alignment = None
-        self.possessive = None
-        self.subject_object = None
+        # Now set the Entity attributes
+        self.entity_class = "Actor"
 
-        self.view_distance = 0
-        self.move_level = 1
-        self.move_speed = 0
-        self.next_move = 0
+        details = actor_details[entity_name]
+
+        # Actor details
+        self.symbol = details[0]
+        self.fgcolor = details[1]
+        self.alignment = details[2]
+        self.subject_object = details[3]
+        self.possessive = details[4]
+        self.character_level = details[5]
+        self.view_distance = details[6]
+        self.visibility = details[7]
+        if self.visibility < 0:
+            self.player_spotted = False
+
+        stats = actor_stats[entity_name]
+
+        # Actor stats
+        self.strength = stats[0]
+        self.intelligence = stats[1]
+        self.wisdom = stats[2]
+        self.dexterity = stats[3]
+        self.constitution = stats[4]
+        self.move_level = stats[5]
+        self.move_speed = stats[6]
+        self.fort = stats[7]
+        self.refl = stats[8]
+        self.will = stats[9]
+        self.current_hp = stats[10]  # TODO: Fix this to a random when dice go in.
+        self.max_hp = self.current_hp
+        # self.next_move = interface.game.timer.current_time + 1  # TODO: Put some randomness here too.
+
+        defenses = actor_defenses[entity_name]
+
+        # Actor defenses
+        self.armor_class = defenses[0]
+        self.damage_reduction = copy.copy(defenses[1])
+        self.hardness = defenses[2]
+        self.spell_resist = defenses[3]
+        self.acid_res = defenses[4]
+        self.cold_res = defenses[5]
+        self.elec_res = defenses[6]
+        self.fire_res = defenses[7]
+        self.necr_res = defenses[8]
+
+        # Add any traits that apply
+        for trait in actor_traits[entity_name]:
+            self.add_trait(trait)
 
     def get_next_move(self, level, player, timer):
         pass
@@ -1314,7 +1352,7 @@ class Actor(Entity):
 ##################################################################################################################
 
 # TODO: This needs to inherit from Actor eventually
-class Player(object):
+class Player(Actor):
     """
     Pretty self explanatory - an extension of the Actor class, which represents the player character
     """
@@ -1327,17 +1365,13 @@ class Player(object):
         :param character_class: String - the player's character class
         """
 
-        self.entity_id = 0
+        Actor.__init__(self, "Player")
+
         self.name = name
         self.race = race
         self.character_class = character_class
-        self.character_level = 1
 
-        self.x_loc = 24
-        self.y_loc = 54
         self.next_move = 0
-
-        self.view_distance = 8
         self.visible_tiles = set()
 
         # TODO: Setup the base values for the derived stats.
