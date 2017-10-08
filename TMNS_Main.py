@@ -9,7 +9,7 @@ Changelog for version 02
 
 Current progress and changes.
 
-7/10/17: Added the base entity class and started the data dictionary.
+7/10/17: 1Added the base entity class and started the data dictionary.
 
 
 Next Steps
@@ -52,6 +52,7 @@ import os
 import pickle
 import string
 import textwrap
+import collections
 from TMNS_Levels import *
 from TMNS_Data_Dictionaries import *
 
@@ -1170,29 +1171,141 @@ class Entity(object):
 
     entity_id = 0
 
-    def __init__(self, entity_name, x_loc=None, y_loc=None):
+    def __init__(self, entity_name):
         """
         Basic setup for an entity.
         :param entity_name: string - self explanatory.
-        :param x_loc: integer - the x coordinate - None if not going on the map.
-        :param y_loc: integer - the y coordinate - None if not going on the map.
         """
 
         self.entity_id = Entity.entity_id
         Entity.entity_id += 1
 
-        self.x_loc = x_loc
-        self.y_loc = y_loc
+        self.entity_class = "Entity"  # If we ever encounter this in game, we know something has gone wrong.
+
+        self.entity_name = entity_name
+        self.x_loc = None
+        self.y_loc = None
+        self.destroyed = False
+        self.traits = collections.Counter()
+
+        # Controls non-standard behaviour - on_destruction, on is_attacked, etc. Attack related ones elsewhere.
+        self.functions = []
+        self.effects = []
 
         # Lookup everything else in the data dictionary.
         details = entity_dictionary[entity_name]
         self.symbol = details[0]
         self.fgcolor = details[1]
 
+        # Simple attributes
+        self.current_hp = 1
+        self.max_hp = 1
+        self.visibility = 0
+        self.player_spotted = True
+
+        # Defensive stats
+        self.armor_class = 0
+        self.damage_reduction = 0
+        self.hardness = 0
+        self.spell_resist = 0
+        self.acid_res = 0
+        self.cold_res = 0
+        self.elec_res = 0
+        self.fire_res = 0
+        self.necr_res = 0
+        self.fort = 0
+        self.refl = 0
+        self.will = 0
+
+        # Add any traits that apply
+        for trait in entity_traits[entity_name]:
+            self.add_trait(trait)
+
+    # TODO: Think through what arguments this should take
     def process_damage(self, damage_amount, damage_type, attack, attacker):
         pass
 
+    def saving_throw(self, save_type, save_dc):
+        pass
+
+    # TODO: Think through what arguments this should take
+    def destroy(self, attack):
+        pass
+
     def __str__(self):
+        pass
+
+    def recalculate_statistics(self, reason="None"):
+        pass
+
+    def has_trait(self, trait):
+        """
+        Checks whether the entity has the given trait or not.
+        :param trait: string - trait
+        :return: True if the entity has the trait, False if not.
+        """
+
+        return self.traits[trait] > 0
+
+    def add_trait(self, trait):
+        """
+        Adds the given trait to the entity.
+        :param trait: string - the trait in question.
+        """
+
+        self.traits[trait] += 1
+
+    def remove_trait(self, trait):
+        """
+        Removes one instance of the trait from the entity
+        :param trait: string - the trait in question.
+        """
+
+        if self.traits[trait] <= 0:
+            interface.add_debug_text("Tried to remove trait {} from entity {} but not present.".format(trait, self))
+            return
+
+        self.traits[trait] -= 1
+
+    def apply_effect(self, effect):
+        pass
+
+    def remove_effect(self, effect):
+        pass
+
+
+##################################################################################################################
+#                                       Actor class definition
+##################################################################################################################
+
+class Actor(Entity):
+    """
+    Subclass of entity - has two derived classes of its own, Player and Monster.
+    """
+
+    def __init__(self, entity_name):
+        """
+        Standard creation script for an Actor - just looks up things from the appropriate dictionary.
+        :param entity_name: string - entity name
+        """
+
+        Entity.__init__(self, entity_name)
+
+        # Actor specific traits
+        self.alignment = None
+        self.possessive = None
+        self.subject_object = None
+
+        self.view_distance = 0
+        self.move_level = 1
+        self.move_speed = 0
+        self.next_move = 0
+
+    def get_next_move(self, level, player, timer):
+        pass
+
+    # TODO: Think through the arguments here
+    def move(self):
         pass
 
 
@@ -1227,6 +1340,7 @@ class Player(object):
         self.view_distance = 8
         self.visible_tiles = set()
 
+        # TODO: Setup the base values for the derived stats.
         # TODO: Apply the racial modifiers.
         if unlock_level > 1:
             pass
