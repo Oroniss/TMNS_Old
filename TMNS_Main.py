@@ -9,13 +9,12 @@ Changelog for version 02
 
 Current progress and changes.
 
-7/10/17: 1Added the base entity class and started the data dictionary.
-
+7/10/17: Added the base entity class and started the data dictionary.
+8/10/17: Fleshed out Entity, Actor, constructors and dictionaries.
+9/10/17: Got entity drawing correctly in draw_map
 
 Next Steps
 
-Build an Entity base class.
-Build an Actor base class.
 Build a monster class.
 Start work on furnishings.
 Add level 2.
@@ -1086,14 +1085,15 @@ class Interface(object):
             for x in range(x_min, x_max):
                 if not level.is_revealed(x, y):
                     self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor="Black")
+                elif (x, y) not in visible_tiles:
+                    self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=level.get_bgcolor(x, y, False))
                 else:
-                    # TODO: Likely need to split this into two cases when entities go in.
-                    bgcolor = level.get_bgcolor(x, y, (x, y) in visible_tiles)
-                    self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=bgcolor)
-                    # TODO: Also put the entity drawing in here as well.
-
-        self.window.putchar("@", x=self.game.player.x_loc + x_offset, y=self.game.player.y_loc + y_offset,
-                            bgcolor=None, fgcolor="black")
+                    entity = level.get_drawing_entity_details(x, y) # Gets False or (symbol, fgcolor)
+                    if not entity:
+                        self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=level.get_bgcolor(x, y, True))
+                    else:
+                        self.window.putchar(entity[0], x=x + x_offset, y=y + y_offset,
+                                            bgcolor=level.get_bgcolor(x, y, True), fgcolor=entity[1])
 
         self.window.update()
 
@@ -1685,6 +1685,25 @@ class MapLevel(object):
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][1]
         else:  # fogcolor
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][2]
+
+    def get_drawing_entity_details(self, x_loc, y_loc):
+        """
+        Gets the symbol and fgcolor for whatever entity should be on top.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :return: (symbol, fgcolor) tuple - both elements are strings - returns False if nothing there.
+        """
+
+        if not self.is_valid_map_coord(x_loc, y_loc):
+            interface.add_debug_text("Looked up drawing for invalid coordinates x = {}, y = {}, lvl = {}").format(
+                x_loc, y_loc, self.level_name)
+            return False
+
+        # TODO: Update once other entity types go in
+        if (x_loc, y_loc) in self.actors_locations:
+            return self.actors_locations[(x_loc, y_loc)].symbol, self.actors_locations[(x_loc, y_loc)].fgcolor
+
+        return False
 
     def reveal_tile(self, x_loc, y_loc):
         """
