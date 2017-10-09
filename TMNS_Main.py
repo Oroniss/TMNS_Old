@@ -1288,6 +1288,11 @@ class Furnishing(Entity):
 
         Entity.__init__(self, entity_name)
 
+        self.symbol = " "
+        self.fgcolor = "Black"
+        self.current_hp = 1
+        self.max_hp = 1
+
         self.bg_color = None
         self.fogcolor = None
         self.blockLos = True
@@ -1310,11 +1315,11 @@ class Furnishing(Entity):
         self.fire_res = material_properties[self.material][7]
         self.necr_res = material_properties[self.material][8]
 
-        # Auto fails all saves - but has traits to make it immune to many things that would require them
-        self.fort = -100  # TODO: This is ugly, figure out a better way.
-        self.refl = -100
-        self.will = -100
+        # Saves not set by design - they are auto fails anyway.
 
+    def make_saving_throw(self, save_type, dc):
+        """ Auto fails all saves, but is immune to a lot of things that might require them. """
+        return "Fail"
 
 ##################################################################################################################
 #                                       Actor class definition
