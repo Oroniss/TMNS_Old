@@ -15,7 +15,6 @@ Current progress and changes.
 
 Next Steps
 
-Build a monster class.
 Start work on furnishings.
 Add level 2.
 Fix up level transition
@@ -1088,12 +1087,12 @@ class Interface(object):
                 elif (x, y) not in visible_tiles:
                     self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=level.get_bgcolor(x, y, False))
                 else:
-                    entity = level.get_drawing_entity_details(x, y) # Gets False or (symbol, fgcolor)
-                    if not entity:
+                    entity_details = level.get_drawing_entity_details(x, y)  # Gets False or (symbol, fgcolor)
+                    if not entity_details:
                         self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=level.get_bgcolor(x, y, True))
                     else:
-                        self.window.putchar(entity[0], x=x + x_offset, y=y + y_offset,
-                                            bgcolor=level.get_bgcolor(x, y, True), fgcolor=entity[1])
+                        self.window.putchar(entity_details[0], x=x + x_offset, y=y + y_offset,
+                                            bgcolor=level.get_bgcolor(x, y, True), fgcolor=entity_details[1])
 
         self.window.update()
 
@@ -1269,6 +1268,36 @@ class Entity(object):
 
     def remove_effect(self, effect):
         pass
+
+
+##################################################################################################################
+#                                       Furnishing class definition
+##################################################################################################################
+
+class Furnishing(Entity):
+    """
+    Class for anything that is basically a map object. Also includes as derived classes:
+    Traps, Fountains, Containers, Altars, Doors and anything with movement or interaction triggers.
+    """
+
+    def __init__(self, entity_name):
+        """
+        Standard setup for an entity.
+        :param entity_name:
+        """
+
+        Entity.__init__(self, entity_name)
+
+        self.bg_color = None
+        self.fogcolor = None
+        self.blockLos = True
+        self.blockMove = 5
+        self.saveMove = 5
+        self.material = "Magic"  # This should drive a lot of the defensive stats.
+
+        # Any functions related to triggers.
+        self.movement_functions = []
+        self.interaction_functions = []
 
 
 ##################################################################################################################
