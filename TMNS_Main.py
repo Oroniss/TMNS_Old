@@ -1299,6 +1299,22 @@ class Furnishing(Entity):
         self.movement_functions = []
         self.interaction_functions = []
 
+        # Properties set by material.
+        self.armor_class = material_properties[self.material][0]
+        self.damage_reduction = material_properties[self.material][1]
+        self.hardness = material_properties[self.material][2]
+        self.spell_resist = material_properties[self.material][3]
+        self.acid_res = material_properties[self.material][4]
+        self.cold_res = material_properties[self.material][5]
+        self.elec_res = material_properties[self.material][6]
+        self.fire_res = material_properties[self.material][7]
+        self.necr_res = material_properties[self.material][8]
+
+        # Auto fails all saves - but has traits to make it immune to many things that would require them
+        self.fort = -100  # TODO: This is ugly, figure out a better way.
+        self.refl = -100
+        self.will = -100
+
 
 ##################################################################################################################
 #                                       Actor class definition
