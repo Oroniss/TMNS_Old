@@ -13,8 +13,13 @@ Current progress and changes.
 8/10/17: Fleshed out Entity, Actor, constructors and dictionaries.
 9/10/17: Got entity drawing correctly in draw_map
 10/10/17: Started work on the Furnishing class - got most of the basics sorted out.
+11/10/17: Finished up the Furnishing class definition.
+12/10/17: Added the furnishing related function to the MapLevel class.
 
 Next Steps
+
+Factor furnishings into drawing, background, FOV/LOS and Passible calculations.
+Then add some furnishings to the map.
 
 Start work on furnishings.
 Add level 2.
@@ -427,11 +432,11 @@ class Interface(object):
         """
 
         log_file = open(os.path.join(os.getcwd(), "Conf", "TMNS_Log.txt"), mode="a")
-        log_file.write("{}, {}, {}, x = {}, y = {}".format(self.game.player.name, self.game.character_class,
-                                                           self.game.current_level, self.game.player.x_loc,
-                                                           self.game.player.y_loc))
-        log_file.write(message)
-        log_file.write("")
+        log_file.write("{}, {}, {}, x = {}, y = {}\n".format(self.game.player.name, self.game.character_class,
+                                                             self.game.current_level, self.game.player.x_loc,
+                                                             self.game.player.y_loc))
+        log_file.write(message + "\n")
+        log_file.write("\n")
         log_file.close()
 
         if self.gm_view:
@@ -1547,9 +1552,12 @@ class MapLevel(object):
         """
 
         # Setup the common storage
+        self.furnishing_ids = dict()
+        self.furnishing_locations = dict()
+        self.item_ids = dict()
+        self.item_locations = collections.defaultdict(list)
         self.actors_ids = dict()
         self.actors_locations = dict()
-        # TODO: Add the others
 
         # Get the level specific stuff
         level_details = LEVEL_DETAILS[level_name]
@@ -1691,7 +1699,7 @@ class MapLevel(object):
                     break
                 else:
                     # We can see this square
-                    if dx * dx + dy * dy < view_distance_squared:
+                    if dx * dx + dy * dy < view_distance_squared and self.is_valid_map_coord(map_x, map_y):
                         view_set.add((map_x, map_y))
                     if blocked:
                         # We are scanning blocked squares
@@ -1801,6 +1809,79 @@ class MapLevel(object):
             return False
 
         return self.revealed[y_loc][x_loc]
+
+    # --------------------------------------------------------------------------------------------------------
+    #                                       Furnishing functions
+    # --------------------------------------------------------------------------------------------------------
+
+    def get_furnishing(self, x_loc, y_loc):
+        """
+        Gets any furnishing object at the specified location.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :return: A furnishing object if one is there, or False otherwise.
+        """
+
+        if (x_loc, y_loc) in self.furnishing_locations:
+            return self.furnishing_locations[(x_loc, y_loc)]
+        else:
+            return False
+
+    def get_all_furnishings(self):
+        """
+        Gets all the furnishings on the level
+        :return: a list of all furnishing objects on the level.
+        """
+
+        return list(self.furnishing_ids.values())
+
+    def add_furnishing(self, furnishing):
+        """
+        Adds the given furnishing to the level.
+        :param furnishing: The furnishing object to add
+        """
+
+        if (furnishing.x_loc, furnishing.y_loc) in self.actors_locations:
+            interface.add_debug_text("Tried to add a furnishing at {}, {}, but {} already there".format(
+                furnishing.x_loc, furnishing.y_loc, self.actors_locations[(furnishing.x_loc,
+                                                                           furnishing.y_loc)]))
+            return
+
+        self.actors_ids[furnishing.entity_id] = furnishing
+
+        if furnishing.x_loc is None and furnishing.y_loc is None:
+            return
+        elif (furnishing.x_loc is None or furnishing.y_loc is None or not
+              self.is_valid_map_coord(furnishing.x_loc, furnishing.y_loc)):
+            interface.add_debug_text("Tried to add a furnishing {} with invalid coordinates {}, {}".format(
+                furnishing, furnishing.x_loc, furnishing.y_loc))
+            return
+        else:
+            self.actors_locations[(furnishing.x_loc, furnishing.y_loc)] = furnishing
+
+    def remove_furnishing(self, furnishing):
+        """
+        Removes the specified furnishing from the level
+        :param furnishing: The furnishing object to be removed.
+        """
+
+        if furnishing.entity_id not in self.furnishing_ids:
+            interface.add_debug_text("Tried to remove furnishing {} with id {} but it wasn't there".format(
+                furnishing, furnishing.entity_id))
+            return
+
+        del self.furnishing_ids[furnishing.entity_id]
+
+        if furnishing.x_loc is None and furnishing.y_loc is None:
+            return
+
+        if ((furnishing.x_loc, furnishing.y_loc) not in self.furnishing_locations or
+                self.furnishing_locations[(furnishing.x_loc, furnishing.y_loc)] is not furnishing):
+            interface.add_debug_text("Tried to remove furnishing {} from {}, {} but it wasn't there".format(
+                furnishing, furnishing.x_loc, furnishing.y_loc))
+            return
+
+        del self.furnishing_locations[(furnishing.x_loc, furnishing.y_loc)]
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Actor functions
