@@ -12,6 +12,7 @@ Current progress and changes.
 7/10/17: Added the base entity class and started the data dictionary.
 8/10/17: Fleshed out Entity, Actor, constructors and dictionaries.
 9/10/17: Got entity drawing correctly in draw_map
+10/10/17: Started work on the Furnishing class - got most of the basics sorted out.
 
 Next Steps
 
@@ -78,7 +79,7 @@ def add_new_colors():
     pygcurse.colornames["Ice"] = (135, 206, 250, 255)
     pygcurse.colornames["Ice Fog"] = (85, 156, 200, 255)
     # Browns
-    pygcurse.colornames["Door Brown"] = (138, 54, 15, 255)
+    pygcurse.colornames["Wood Brown"] = (138, 54, 15, 255)
     pygcurse.colornames["Red Brown"] = (199, 97, 20, 255)
     pygcurse.colornames["Chitin Brown"] = (205, 175, 149, 255)
     pygcurse.colornames["Fur Brown"] = (205, 133, 63, 255)
@@ -1183,6 +1184,7 @@ class Entity(object):
         self.entity_class = "Entity"  # If we ever encounter this in game, we know something has gone wrong.
 
         self.entity_name = entity_name
+        self.description = ""
         self.x_loc = None
         self.y_loc = None
         self.destroyed = False
@@ -1213,9 +1215,8 @@ class Entity(object):
         self.fire_res = 0
         self.necr_res = 0
 
-        self.fort = 0
-        self.refl = 0
-        self.will = 0
+        # Saving throws aren't here for all derived classes - since many objects just auto-fail them.
+        # There is a make_save method on this class though.
 
     # TODO: Think through what arguments this should take
     def process_damage(self, damage_amount, damage_type, attack, attacker):
@@ -1280,7 +1281,7 @@ class Furnishing(Entity):
     Traps, Fountains, Containers, Altars, Doors and anything with movement or interaction triggers.
     """
 
-    def __init__(self, entity_name):
+    def __init__(self, entity_name, material=None):
         """
         Standard setup for an entity.
         :param entity_name:
@@ -1288,17 +1289,21 @@ class Furnishing(Entity):
 
         Entity.__init__(self, entity_name)
 
-        self.symbol = " "
-        self.fgcolor = "Black"
-        self.current_hp = 1
-        self.max_hp = 1
+        details = furnishing_details[entity_name]
 
-        self.bg_color = None
-        self.fogcolor = None
-        self.blockLos = True
-        self.blockMove = 5
-        self.saveMove = 5
-        self.material = "Magic"  # This should drive a lot of the defensive stats.
+        self.symbol = details[0]
+        self.blockLos = details[1]
+        self.blockMove = details[2]
+        self.safeMove = details[3]
+        self.volume = details[4]  # A measure of how big the object is - basically determines hp
+
+        self.bgcolor = details[5]
+        self.fogcolor = details[6]
+
+        if material is None:
+            self.material = details[7]  # This should drive a lot of the defensive stats.
+        else:
+            self.material = material
 
         # Any functions related to triggers.
         self.movement_functions = []
@@ -1315,11 +1320,22 @@ class Furnishing(Entity):
         self.fire_res = material_properties[self.material][7]
         self.necr_res = material_properties[self.material][8]
 
+        self.current_hp = material_properties[self.material][9] * self.volume
+        self.max_hp = self.current_hp
+
+        self.fgcolor = material_properties[self.material][10]
+        self.description = ""  # TODO: Add something to do with the material adjective here.
+
+        for trait in material_properties[self.material][12]:
+            self.add_trait(trait)
+
         # Saves not set by design - they are auto fails anyway.
 
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def make_saving_throw(self, save_type, dc):
         """ Auto fails all saves, but is immune to a lot of things that might require them. """
         return "Fail"
+
 
 ##################################################################################################################
 #                                       Actor class definition
