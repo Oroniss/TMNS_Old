@@ -15,10 +15,10 @@ Current progress and changes.
 10/10/17: Started work on the Furnishing class - got most of the basics sorted out.
 11/10/17: Finished up the Furnishing class definition.
 12/10/17: Added the furnishing related function to the MapLevel class.
+12/10/17: Added the furnishing information to checks for LOS, drawing, etc.
 
 Next Steps
 
-Factor furnishings into drawing, background, FOV/LOS and Passible calculations.
 Then add some furnishings to the map.
 
 Start work on furnishings.
@@ -1297,9 +1297,9 @@ class Furnishing(Entity):
         details = furnishing_details[entity_name]
 
         self.symbol = details[0]
-        self.blockLos = details[1]
-        self.blockMove = details[2]
-        self.safeMove = details[3]
+        self.block_los = details[1]
+        self.block_move = details[2]
+        self.safe_move = details[3]
         self.volume = details[4]  # A measure of how big the object is - basically determines hp
 
         self.bgcolor = details[5]
@@ -1310,9 +1310,10 @@ class Furnishing(Entity):
         else:
             self.material = material
 
-        # Any functions related to triggers.
-        self.movement_functions = []
-        self.interaction_functions = []
+        # Any functions related to triggers or usage.
+        self.functions = []
+        for furnishing_function in furnishing_functions[self.entity_name]:
+            self.functions.append(furnishing_function)
 
         # Properties set by material.
         self.armor_class = material_properties[self.material][0]
@@ -1603,12 +1604,18 @@ class MapLevel(object):
         :return: True if the square is passible, False otherwise
         """
 
-        # TODO: Update as furnishings and actors go in
-        # TODO: Update as movement types go in
+        # TODO: Test this is working ok
         if not self.is_valid_map_coord(x_loc, y_loc):
             interface.add_debug_text("Checked passible for non-existent map coordinate, x = {}, y = {}".format(
                 x_loc, y_loc))
             return False
+
+        if (x_loc, y_loc) in self.actors_locations:
+            return False
+
+        if (x_loc, y_loc) in self.furnishing_locations:
+            if move_type < self.furnishing_locations[(x_loc, y_loc)].block_move:
+                return False
 
         return move_type >= MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][5]
 
@@ -1620,12 +1627,15 @@ class MapLevel(object):
         :return: True if the tile allows visibility, False otherwise
         """
 
+        # TODO: Test this properly.
         if not self.is_valid_map_coord(x_loc, y_loc):
             interface.add_debug_text("Checked los on an invalid coordinate {}, {}, level = {}".format(
                 x_loc, y_loc, self.level_name))
             return False
 
-        # TODO: Update this when furnishings go in.
+        if (x_loc, y_loc) in self.furnishing_locations and self.furnishing_locations[(x_loc, y_loc)].block_los:
+            return False
+
         return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][4]
 
     def get_field_of_view(self, x_loc, y_loc, view_distance):
@@ -1754,10 +1764,15 @@ class MapLevel(object):
                 x_loc, y_loc, self))
             return "Black"
 
-        # TODO: Put appropriate checks in here once furnishings go in.
         if in_view:  # bgcolor
+            if ((x_loc, y_loc) in self.furnishing_locations and
+                    self.furnishing_locations[(x_loc, y_loc)].bgcolor is not None):
+                return self.furnishing_locations[(x_loc, y_loc)].bgcolor
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][1]
         else:  # fogcolor
+            if ((x_loc, y_loc) in self.furnishing_locations and
+                    self.furnishing_locations[(x_loc, y_loc)].fogcolor is not None):
+                return self.furnishing_locations[(x_loc, y_loc)].fogcolor
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][2]
 
     def get_drawing_entity_details(self, x_loc, y_loc):
@@ -1774,8 +1789,12 @@ class MapLevel(object):
             return False
 
         # TODO: Update once other entity types go in
-        if (x_loc, y_loc) in self.actors_locations:
+        if (x_loc, y_loc) in self.actors_locations and self.actors_locations[(x_loc, y_loc)].fgcolor is not None:
             return self.actors_locations[(x_loc, y_loc)].symbol, self.actors_locations[(x_loc, y_loc)].fgcolor
+
+        elif ((x_loc, y_loc) in self.furnishing_locations and
+              self.furnishing_locations[(x_loc, y_loc)].fgcolor is not None):
+            return self.furnishing_locations[(x_loc, y_loc)].symbol, self.furnishing_locations[(x_loc, y_loc)].fgcolor
 
         return False
 

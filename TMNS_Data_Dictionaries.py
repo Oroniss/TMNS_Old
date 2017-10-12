@@ -15,6 +15,10 @@ furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor    
     "Barricade":        ("|",   False,    3,  3,  3,  None,         None,               None)
 }
 
+furnishing_functions = {  # Tuples of (type, function_name)
+    "Barricade":        ()
+}
+
 ##################################################################################################################
 #                                       Actor Dictionaries.
 ##################################################################################################################
