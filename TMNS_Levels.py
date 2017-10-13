@@ -120,10 +120,57 @@ Level1a_map = (
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0))
 
+
+Level1a_furnishings = (
+    ("Barricade", 22, 8, "Wood"),
+    ("Barricade", 23, 8, "Wood"),
+    ("Barricade", 24, 8, "Wood"),
+    ("Circle", 3, 42, "Magic"),
+    ("Circle", 3, 43, "Magic"),
+    ("Circle", 3, 44, "Magic"),
+    ("Circle", 4, 42, "Magic"),
+    ("Circle", 4, 44, "Magic"),
+    ("Circle", 5, 42, "Magic"),
+    ("Circle", 5, 43, "Magic"),
+    ("Circle", 5, 44, "Magic"),
+    ("Laboratory", 2, 47, "Glass"),
+    ("Laboratory", 3, 47, "Glass"),
+    ("Laboratory", 4, 47, "Glass"),
+    ("Laboratory", 5, 47, "Glass"),
+    ("Laboratory", 6, 47, "Glass"),
+    ("Pedestal", 51, 9, "Wood"),
+    ("Rubbish", 47, 28, "Cloth"),
+    ("Rubbish", 46, 29, "Cloth"),
+    ("Rubbish", 47, 29, "Cloth"),
+    ("Statue", 43, 6, "Stone"),
+    ("Statue", 47, 6, "Stone"),
+    ("Statue", 43, 12, "Stone"),
+    ("Statue", 47, 12, "Stone"),
+    ("Cage", 15, 12, "Steel"),
+    ("Cage", 14, 12, "Steel"),
+    ("Cage", 12, 12, "Steel"),
+    ("Cage", 11, 12, "Steel"),
+    ("Closet", 22, 36, "Wood"),
+    ("Altar", 22, 43, "Stone"),
+    ("Altar", 22, 44, "Stone"),
+    ("Altar", 3, 23, "Stone"),
+    ("Altar", 3, 24, "Stone"),
+    ("Altar", 3, 25, "Stone"),
+    ("Well", 30, 11, "Stone"),
+    # ("icy pillar", 2, 11),
+    # ("icy pillar", 4, 10),
+    # ("icy pillar", 4, 8),
+    # ("icy pillar", 7, 7)
+)
+
 LEVEL_DETAILS = {
     "Level1a":      Level1a_details
 }
 
 LEVEL_MAPS = {
     "Level1a":      Level1a_map
+}
+
+LEVEL_FURNISHINGS = {
+    "Level1a":      Level1a_furnishings
 }

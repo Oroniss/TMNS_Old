@@ -1313,8 +1313,9 @@ class Furnishing(Entity):
 
         # Any functions related to triggers or usage.
         self.functions = []
-        for furnishing_function in furnishing_functions[self.entity_name]:
-            self.functions.append(furnishing_function)
+        if self.entity_name in furnishing_functions:
+            for furnishing_function in furnishing_functions[self.entity_name]:
+                self.functions.append(furnishing_function)
 
         # Properties set by material.
         self.armor_class = material_properties[self.material][0]

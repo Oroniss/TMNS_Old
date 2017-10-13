@@ -3,6 +3,16 @@
 ##################################################################################################################
 
 material_properties = {  # AC,  DR, HA, SR,     AR, CR, ER, FR, NR,     HP/V,   Adjective,  fgcolor, Traits
+    "Cloth":        (0,     False,  0,  0,     -25, 5,  -15, -30, -30,  5,      "Cloth",    "Putrid Green",
+                     {"Cloth", "Organic"}),
+    "Glass":        (0,     False,  0,  0,      5,  15, -30, 20, -20,   5,      "Glass",    "Magic Purple",
+                     {"Glass", "Inorganic"}),
+    "Magic":        (0,     False,  5,  25,     15, 15, 15, 15, 15,     15,     "Magic",    "Magic Purple",
+                     {"Magic", "Inorganic"}),
+    "Steel":        (30,    False,  8,  0,      0,  30, -5,  0, -20,    20,     "Steel",    "Steel Gray",
+                     {"Metal", "Inorganic"}),
+    "Stone":        (25,    False,  5,  0,     -5,  20, 30, 20, -20,    10,     "Stone",    "Stone Wall",
+                     {"Stone", "Inorganic"}),
     "Wood":         (10,    False,  2,  0,     -10, 10, -10, -20, -30,  5,      "Wooden",   "Wood Brown",
                      {"Wood", "Organic"})
 }
@@ -26,7 +36,7 @@ furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor    
     "Ice":              (" ",   False,    0,  2,  2,  "Ice",        "Ice Fog",          "Ice"),
     "Laboratory":       ("#",   False,    2,  2,  6,  None,         None,               None),
     "Pedestal":         ("*",   False,    2,  2,  2,  None,         None,               None),
-    "Rubbish":          ("#",   False,    1,  1,  9,  None,         None,               "Cloth"),
+    "Rubbish":          ("#",   False,    1,  1,  9,  None,         None,               None),
     "Stair":            ("//",  False,    0,  0,  5,  None,         None,               None),
     "Stair Up":         ("<",   False,    0,  0,  5,  None,         None,               None),
     "Stair Down":       (">",   False,    0,  0,  5,  None,         None,               None),
@@ -37,26 +47,17 @@ furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor    
 }
 
 furnishing_functions = {  # Tuples of (type, function_name)
-    "Altar":            (),
     "Barricade":        (),
     "Cage":             (),
-    "Chest":            (),
-    "Closet":           (),
     "Circle":           (),
-    "Compartment":      (),
-    "Door":             (),
     "Empty":            (),
-    "Fountain":         (),  # TODO: Add stuff here
     "Grease":           (),  # TODO: Add stuff here
-    "Ice":              (),  # TODO: Add stuff heer
+    "Ice":              (),  # TODO: Add stuff here
     "Laboratory":       (),
     "Pedestal":         (),
     "Rubbish":          (),
     "Stair":            (),
-    "Stair Up":         (),
-    "Stair Down":       (),
     "Statue":           (),
-    "Trap":             (),
     "Web":              (),
     "Well":             ()
 }
