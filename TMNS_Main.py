@@ -9,14 +9,18 @@ Changelog for version 02
 
 Current progress and changes.
 
-7/10/17: 1Added the base entity class and started the data dictionary.
-
+7/10/17: Added the base entity class and started the data dictionary.
+8/10/17: Fleshed out Entity, Actor, constructors and dictionaries.
+9/10/17: Got entity drawing correctly in draw_map
+10/10/17: Started work on the Furnishing class - got most of the basics sorted out.
+11/10/17: Finished up the Furnishing class definition.
+12/10/17: Added the furnishing related function to the MapLevel class.
+12/10/17: Added the furnishing information to checks for LOS, drawing, etc.
 
 Next Steps
 
-Build an Entity base class.
-Build an Actor base class.
-Build a monster class.
+Then add some furnishings to the map.
+
 Start work on furnishings.
 Add level 2.
 Fix up level transition
@@ -80,7 +84,7 @@ def add_new_colors():
     pygcurse.colornames["Ice"] = (135, 206, 250, 255)
     pygcurse.colornames["Ice Fog"] = (85, 156, 200, 255)
     # Browns
-    pygcurse.colornames["Door Brown"] = (138, 54, 15, 255)
+    pygcurse.colornames["Wood Brown"] = (138, 54, 15, 255)
     pygcurse.colornames["Red Brown"] = (199, 97, 20, 255)
     pygcurse.colornames["Chitin Brown"] = (205, 175, 149, 255)
     pygcurse.colornames["Fur Brown"] = (205, 133, 63, 255)
@@ -428,11 +432,11 @@ class Interface(object):
         """
 
         log_file = open(os.path.join(os.getcwd(), "Conf", "TMNS_Log.txt"), mode="a")
-        log_file.write("{}, {}, {}, x = {}, y = {}".format(self.game.player.name, self.game.character_class,
-                                                           self.game.current_level, self.game.player.x_loc,
-                                                           self.game.player.y_loc))
-        log_file.write(message)
-        log_file.write("")
+        log_file.write("{}, {}, {}, x = {}, y = {}\n".format(self.game.player.name, self.game.character_class,
+                                                             self.game.current_level, self.game.player.x_loc,
+                                                             self.game.player.y_loc))
+        log_file.write(message + "\n")
+        log_file.write("\n")
         log_file.close()
 
         if self.gm_view:
@@ -1086,14 +1090,15 @@ class Interface(object):
             for x in range(x_min, x_max):
                 if not level.is_revealed(x, y):
                     self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor="Black")
+                elif (x, y) not in visible_tiles:
+                    self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=level.get_bgcolor(x, y, False))
                 else:
-                    # TODO: Likely need to split this into two cases when entities go in.
-                    bgcolor = level.get_bgcolor(x, y, (x, y) in visible_tiles)
-                    self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=bgcolor)
-                    # TODO: Also put the entity drawing in here as well.
-
-        self.window.putchar("@", x=self.game.player.x_loc + x_offset, y=self.game.player.y_loc + y_offset,
-                            bgcolor=None, fgcolor="black")
+                    entity_details = level.get_drawing_entity_details(x, y)  # Gets False or (symbol, fgcolor)
+                    if not entity_details:
+                        self.window.putchar(" ", x=x + x_offset, y=y + y_offset, bgcolor=level.get_bgcolor(x, y, True))
+                    else:
+                        self.window.putchar(entity_details[0], x=x + x_offset, y=y + y_offset,
+                                            bgcolor=level.get_bgcolor(x, y, True), fgcolor=entity_details[1])
 
         self.window.update()
 
@@ -1184,6 +1189,7 @@ class Entity(object):
         self.entity_class = "Entity"  # If we ever encounter this in game, we know something has gone wrong.
 
         self.entity_name = entity_name
+        self.description = ""
         self.x_loc = None
         self.y_loc = None
         self.destroyed = False
@@ -1214,9 +1220,8 @@ class Entity(object):
         self.fire_res = 0
         self.necr_res = 0
 
-        self.fort = 0
-        self.refl = 0
-        self.will = 0
+        # Saving throws aren't here for all derived classes - since many objects just auto-fail them.
+        # There is a make_save method on this class though.
 
     # TODO: Think through what arguments this should take
     def process_damage(self, damage_amount, damage_type, attack, attacker):
@@ -1269,6 +1274,73 @@ class Entity(object):
 
     def remove_effect(self, effect):
         pass
+
+
+##################################################################################################################
+#                                       Furnishing class definition
+##################################################################################################################
+
+class Furnishing(Entity):
+    """
+    Class for anything that is basically a map object. Also includes as derived classes:
+    Traps, Fountains, Containers, Altars, Doors and anything with movement or interaction triggers.
+    """
+
+    def __init__(self, entity_name, material=None):
+        """
+        Standard setup for an entity.
+        :param entity_name:
+        """
+
+        Entity.__init__(self, entity_name)
+
+        details = furnishing_details[entity_name]
+
+        self.symbol = details[0]
+        self.block_los = details[1]
+        self.block_move = details[2]
+        self.safe_move = details[3]
+        self.volume = details[4]  # A measure of how big the object is - basically determines hp
+
+        self.bgcolor = details[5]
+        self.fogcolor = details[6]
+
+        if material is None:
+            self.material = details[7]  # This should drive a lot of the defensive stats.
+        else:
+            self.material = material
+
+        # Any functions related to triggers or usage.
+        self.functions = []
+        for furnishing_function in furnishing_functions[self.entity_name]:
+            self.functions.append(furnishing_function)
+
+        # Properties set by material.
+        self.armor_class = material_properties[self.material][0]
+        self.damage_reduction = material_properties[self.material][1]
+        self.hardness = material_properties[self.material][2]
+        self.spell_resist = material_properties[self.material][3]
+        self.acid_res = material_properties[self.material][4]
+        self.cold_res = material_properties[self.material][5]
+        self.elec_res = material_properties[self.material][6]
+        self.fire_res = material_properties[self.material][7]
+        self.necr_res = material_properties[self.material][8]
+
+        self.current_hp = material_properties[self.material][9] * self.volume
+        self.max_hp = self.current_hp
+
+        self.fgcolor = material_properties[self.material][10]
+        self.description = ""  # TODO: Add something to do with the material adjective here.
+
+        for trait in material_properties[self.material][12]:
+            self.add_trait(trait)
+
+        # Saves not set by design - they are auto fails anyway.
+
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def make_saving_throw(self, save_type, dc):
+        """ Auto fails all saves, but is immune to a lot of things that might require them. """
+        return "Fail"
 
 
 ##################################################################################################################
@@ -1480,9 +1552,12 @@ class MapLevel(object):
         """
 
         # Setup the common storage
+        self.furnishing_ids = dict()
+        self.furnishing_locations = dict()
+        self.item_ids = dict()
+        self.item_locations = collections.defaultdict(list)
         self.actors_ids = dict()
         self.actors_locations = dict()
-        # TODO: Add the others
 
         # Get the level specific stuff
         level_details = LEVEL_DETAILS[level_name]
@@ -1528,12 +1603,18 @@ class MapLevel(object):
         :return: True if the square is passible, False otherwise
         """
 
-        # TODO: Update as furnishings and actors go in
-        # TODO: Update as movement types go in
+        # TODO: Test this is working ok
         if not self.is_valid_map_coord(x_loc, y_loc):
             interface.add_debug_text("Checked passible for non-existent map coordinate, x = {}, y = {}".format(
                 x_loc, y_loc))
             return False
+
+        if (x_loc, y_loc) in self.actors_locations:
+            return False
+
+        if (x_loc, y_loc) in self.furnishing_locations:
+            if move_type < self.furnishing_locations[(x_loc, y_loc)].block_move:
+                return False
 
         return move_type >= MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][5]
 
@@ -1545,12 +1626,15 @@ class MapLevel(object):
         :return: True if the tile allows visibility, False otherwise
         """
 
+        # TODO: Test this properly.
         if not self.is_valid_map_coord(x_loc, y_loc):
             interface.add_debug_text("Checked los on an invalid coordinate {}, {}, level = {}".format(
                 x_loc, y_loc, self.level_name))
             return False
 
-        # TODO: Update this when furnishings go in.
+        if (x_loc, y_loc) in self.furnishing_locations and self.furnishing_locations[(x_loc, y_loc)].block_los:
+            return False
+
         return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][4]
 
     def get_field_of_view(self, x_loc, y_loc, view_distance):
@@ -1624,7 +1708,7 @@ class MapLevel(object):
                     break
                 else:
                     # We can see this square
-                    if dx * dx + dy * dy < view_distance_squared:
+                    if dx * dx + dy * dy < view_distance_squared and self.is_valid_map_coord(map_x, map_y):
                         view_set.add((map_x, map_y))
                     if blocked:
                         # We are scanning blocked squares
@@ -1679,11 +1763,39 @@ class MapLevel(object):
                 x_loc, y_loc, self))
             return "Black"
 
-        # TODO: Put appropriate checks in here once furnishings go in.
         if in_view:  # bgcolor
+            if ((x_loc, y_loc) in self.furnishing_locations and
+                    self.furnishing_locations[(x_loc, y_loc)].bgcolor is not None):
+                return self.furnishing_locations[(x_loc, y_loc)].bgcolor
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][1]
         else:  # fogcolor
+            if ((x_loc, y_loc) in self.furnishing_locations and
+                    self.furnishing_locations[(x_loc, y_loc)].fogcolor is not None):
+                return self.furnishing_locations[(x_loc, y_loc)].fogcolor
             return MapLevel.tile_dict[self.map_grid[y_loc][x_loc]][2]
+
+    def get_drawing_entity_details(self, x_loc, y_loc):
+        """
+        Gets the symbol and fgcolor for whatever entity should be on top.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :return: (symbol, fgcolor) tuple - both elements are strings - returns False if nothing there.
+        """
+
+        if not self.is_valid_map_coord(x_loc, y_loc):
+            interface.add_debug_text("Looked up drawing for invalid coordinates x = {}, y = {}, lvl = {}").format(
+                x_loc, y_loc, self.level_name)
+            return False
+
+        # TODO: Update once other entity types go in
+        if (x_loc, y_loc) in self.actors_locations and self.actors_locations[(x_loc, y_loc)].fgcolor is not None:
+            return self.actors_locations[(x_loc, y_loc)].symbol, self.actors_locations[(x_loc, y_loc)].fgcolor
+
+        elif ((x_loc, y_loc) in self.furnishing_locations and
+              self.furnishing_locations[(x_loc, y_loc)].fgcolor is not None):
+            return self.furnishing_locations[(x_loc, y_loc)].symbol, self.furnishing_locations[(x_loc, y_loc)].fgcolor
+
+        return False
 
     def reveal_tile(self, x_loc, y_loc):
         """
@@ -1715,6 +1827,79 @@ class MapLevel(object):
             return False
 
         return self.revealed[y_loc][x_loc]
+
+    # --------------------------------------------------------------------------------------------------------
+    #                                       Furnishing functions
+    # --------------------------------------------------------------------------------------------------------
+
+    def get_furnishing(self, x_loc, y_loc):
+        """
+        Gets any furnishing object at the specified location.
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :return: A furnishing object if one is there, or False otherwise.
+        """
+
+        if (x_loc, y_loc) in self.furnishing_locations:
+            return self.furnishing_locations[(x_loc, y_loc)]
+        else:
+            return False
+
+    def get_all_furnishings(self):
+        """
+        Gets all the furnishings on the level
+        :return: a list of all furnishing objects on the level.
+        """
+
+        return list(self.furnishing_ids.values())
+
+    def add_furnishing(self, furnishing):
+        """
+        Adds the given furnishing to the level.
+        :param furnishing: The furnishing object to add
+        """
+
+        if (furnishing.x_loc, furnishing.y_loc) in self.actors_locations:
+            interface.add_debug_text("Tried to add a furnishing at {}, {}, but {} already there".format(
+                furnishing.x_loc, furnishing.y_loc, self.actors_locations[(furnishing.x_loc,
+                                                                           furnishing.y_loc)]))
+            return
+
+        self.actors_ids[furnishing.entity_id] = furnishing
+
+        if furnishing.x_loc is None and furnishing.y_loc is None:
+            return
+        elif (furnishing.x_loc is None or furnishing.y_loc is None or not
+              self.is_valid_map_coord(furnishing.x_loc, furnishing.y_loc)):
+            interface.add_debug_text("Tried to add a furnishing {} with invalid coordinates {}, {}".format(
+                furnishing, furnishing.x_loc, furnishing.y_loc))
+            return
+        else:
+            self.actors_locations[(furnishing.x_loc, furnishing.y_loc)] = furnishing
+
+    def remove_furnishing(self, furnishing):
+        """
+        Removes the specified furnishing from the level
+        :param furnishing: The furnishing object to be removed.
+        """
+
+        if furnishing.entity_id not in self.furnishing_ids:
+            interface.add_debug_text("Tried to remove furnishing {} with id {} but it wasn't there".format(
+                furnishing, furnishing.entity_id))
+            return
+
+        del self.furnishing_ids[furnishing.entity_id]
+
+        if furnishing.x_loc is None and furnishing.y_loc is None:
+            return
+
+        if ((furnishing.x_loc, furnishing.y_loc) not in self.furnishing_locations or
+                self.furnishing_locations[(furnishing.x_loc, furnishing.y_loc)] is not furnishing):
+            interface.add_debug_text("Tried to remove furnishing {} from {}, {} but it wasn't there".format(
+                furnishing, furnishing.x_loc, furnishing.y_loc))
+            return
+
+        del self.furnishing_locations[(furnishing.x_loc, furnishing.y_loc)]
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Actor functions
