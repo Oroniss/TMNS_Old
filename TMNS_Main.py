@@ -1351,7 +1351,6 @@ class Actor(Entity):
 #                                       Player class definition
 ##################################################################################################################
 
-# TODO: This needs to inherit from Actor eventually
 class Player(Actor):
     """
     Pretty self explanatory - an extension of the Actor class, which represents the player character
