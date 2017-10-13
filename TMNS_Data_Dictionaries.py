@@ -12,7 +12,14 @@ material_properties = {  # AC,  DR, HA, SR,     AR, CR, ER, FR, NR,     HP/V,   
 ##################################################################################################################
 
 furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor            material
-    "Barricade":        ("|",   False,    3,  3,  3,  None,         None,               None)
+    "Altar":            ("#",   False,    1,  1,  5,  None,         None,               "immune"),
+    "Barricade":        ("|",   False,    3,  3,  3,  None,         None,               None),
+    "Cage":             ("#",   False,    3,  3,  3,  None,         None,               None),
+    "Chest":            ("+",   False,    1,  1,  2,  None,         None,               None),
+    "Closet":           ("#",   True,     4,  4,  5,  None,         None,               None),
+    "Circle":           (".",   False,    1,  1,  1,  None,         None,               "immune"),
+    "Compartment":      ("+",   False,    1,  1,  1,  None,         None,               None),
+    "Door":             ("+",   True,     5,  5,  4,  None,         None,               None)
 }
 
 furnishing_functions = {  # Tuples of (type, function_name)
