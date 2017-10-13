@@ -16,6 +16,7 @@ Current progress and changes.
 11/10/17: Finished up the Furnishing class definition.
 12/10/17: Added the furnishing related function to the MapLevel class.
 12/10/17: Added the furnishing information to checks for LOS, drawing, etc.
+13/10/17: Added some more furnishing stuff.
 
 Next Steps
 
@@ -1336,6 +1337,7 @@ class Furnishing(Entity):
             self.add_trait(trait)
 
         # Saves not set by design - they are auto fails anyway.
+        # TODO: Figure out whether there should be setup functions here, also Furnishing traits.
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def make_saving_throw(self, save_type, dc):
