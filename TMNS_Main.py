@@ -17,12 +17,12 @@ Current progress and changes.
 12/10/17: Added the furnishing related function to the MapLevel class.
 12/10/17: Added the furnishing information to checks for LOS, drawing, etc.
 13/10/17: Added some more furnishing stuff.
+14/10/17: Got furnishings spawning in the actual game. Most of the level 1 ones are now in.
 
 Next Steps
 
-Then add some furnishings to the map.
+Get "Use" working for doors - then add the level transition objects.
 
-Start work on furnishings.
 Add level 2.
 Fix up level transition
 Get movement up and running properly.
@@ -1330,6 +1330,10 @@ class Furnishing(Entity):
 
         self.current_hp = material_properties[self.material][9] * self.volume
         self.max_hp = self.current_hp
+
+        self.hazard = False
+        self.trapped = False
+        self.trapped_spotted = False
 
         self.fgcolor = material_properties[self.material][11]
         self.description = ""  # TODO: Add something to do with the material adjective here.
