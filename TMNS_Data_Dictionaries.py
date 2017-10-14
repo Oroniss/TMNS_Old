@@ -22,7 +22,7 @@ material_properties = {  # AC,  DR, HA, SR,     AR, CR, ER, FR, NR,     HP/V,   
 ##################################################################################################################
 
 furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor            material
-    "Altar":            ("#",   False,    0,  0,  5,  None,         None,               None),
+    "Altar":            ("#",   False,    2,  2,  5,  None,         None,               None),
     "Barricade":        ("|",   False,    2,  2,  3,  None,         None,               None),
     "Cage":             ("#",   False,    2,  2,  3,  None,         None,               None),
     "Chest":            ("+",   False,    0,  0,  2,  None,         None,               None),

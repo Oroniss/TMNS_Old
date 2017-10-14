@@ -1331,7 +1331,7 @@ class Furnishing(Entity):
         self.current_hp = material_properties[self.material][9] * self.volume
         self.max_hp = self.current_hp
 
-        self.fgcolor = material_properties[self.material][10]
+        self.fgcolor = material_properties[self.material][11]
         self.description = ""  # TODO: Add something to do with the material adjective here.
 
         for trait in material_properties[self.material][12]:
@@ -1344,6 +1344,26 @@ class Furnishing(Entity):
     def make_saving_throw(self, save_type, dc):
         """ Auto fails all saves, but is immune to a lot of things that might require them. """
         return "Fail"
+
+    @staticmethod
+    def create_furnishing(entity_name, x_loc, y_loc, material=None, *args):
+        """
+        Creates a new furnishing instance
+        :param entity_name: string - the name of the entity
+        :param x_loc: integer - the x coordinate - None if not going on the map
+        :param y_loc: integer - the y coordinate - None if not going on the map
+        :param material: string - what the furnishing is made of - None just picks up the default
+        :param args: Any other information needed to create the entity
+        :return: The new furnishing object
+        """
+
+        # TODO: Do some thinking about whether we want to create everything from here.
+        if len(args) > 0:
+            pass
+        new_furnishing = Furnishing(entity_name, material)
+        new_furnishing.x_loc = x_loc
+        new_furnishing.y_loc = y_loc
+        return new_furnishing
 
 
 ##################################################################################################################
@@ -1580,6 +1600,10 @@ class MapLevel(object):
         self.map_grid = LEVEL_MAPS[level_name]
         # noinspection PyUnusedLocal
         self.revealed = [[False] * len(self.map_grid[0]) for i in self.map_grid]
+
+        for furnishing_info in LEVEL_FURNISHINGS[level_name]:
+            new_furnishing = Furnishing.create_furnishing(*furnishing_info)
+            self.add_furnishing(new_furnishing)
 
         # TODO: Get all the other objects here
 
@@ -1868,7 +1892,7 @@ class MapLevel(object):
                                                                            furnishing.y_loc)]))
             return
 
-        self.actors_ids[furnishing.entity_id] = furnishing
+        self.furnishing_ids[furnishing.entity_id] = furnishing
 
         if furnishing.x_loc is None and furnishing.y_loc is None:
             return
@@ -1878,7 +1902,7 @@ class MapLevel(object):
                 furnishing, furnishing.x_loc, furnishing.y_loc))
             return
         else:
-            self.actors_locations[(furnishing.x_loc, furnishing.y_loc)] = furnishing
+            self.furnishing_locations[(furnishing.x_loc, furnishing.y_loc)] = furnishing
 
     def remove_furnishing(self, furnishing):
         """
