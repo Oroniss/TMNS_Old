@@ -18,6 +18,7 @@ Current progress and changes.
 12/10/17: Added the furnishing information to checks for LOS, drawing, etc.
 13/10/17: Added some more furnishing stuff.
 14/10/17: Got furnishings spawning in the actual game. Most of the level 1 ones are now in.
+14/10/17: Got interaction setup and started work on doors. Still needs completing though.
 
 Next Steps
 
@@ -398,6 +399,17 @@ class Interface(object):
                 return True
             elif key == "N":
                 return False
+
+    def get_direction(self, message=None, center=False):
+        """
+        Gets a direction from the player
+        :param message: Any message to display to the player - default is "Which direction?"
+        :param center: bool - Whether the player can pick the tile they are currently on.
+        :return: a (x_dif, y_dif) tuple, or False if the player cancels.
+        """
+
+        while True:
+            pass
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Message functions
@@ -1281,6 +1293,36 @@ class Entity(object):
 #                                       Furnishing class definition
 ##################################################################################################################
 
+# noinspection PyUnusedLocal
+def door_use(furnishing, actor, level):
+    """
+    Standard setup for an interaction function.
+    :param furnishing: The furnishing in question.
+    :param actor: The actor trying to use it.
+    :param level: The level it's on.
+    :return: True if the interaction is successful, False otherwise.
+    """
+
+    if furnishing.open:
+        furnishing.open = False
+        furnishing.symbol = "+"
+        furnishing.block_move = 3
+        furnishing.safe_move = 3
+        furnishing.block_los = True
+        return True
+    elif not furnishing.locked and furnishing.player_spotted:
+        furnishing.open = True
+        furnishing.symbol = "-"
+        furnishing.block_los = False
+        furnishing.block_move = 0
+        furnishing.safe_move = 0
+        return True
+
+FURNISHING_FUNCTION_DICT = {
+    "Door Use":     door_use
+}
+
+
 class Furnishing(Entity):
     """
     Class for anything that is basically a map object. Also includes as derived classes:
@@ -1362,12 +1404,49 @@ class Furnishing(Entity):
         """
 
         # TODO: Do some thinking about whether we want to create everything from here.
-        if len(args) > 0:
-            pass
-        new_furnishing = Furnishing(entity_name, material)
+        if entity_name in ("Door", ):
+            new_furnishing = Door(entity_name, material, *args)  # args needs is_open, secret, then any extra stuff.
+        else:
+            new_furnishing = Furnishing(entity_name, material)
         new_furnishing.x_loc = x_loc
         new_furnishing.y_loc = y_loc
         return new_furnishing
+
+
+##################################################################################################################
+#                                       Door class definition
+##################################################################################################################
+
+class Door(Furnishing):
+    """
+    Pretty self explanatory - just inherits from Furnishing and adds a few extra attributes.
+    """
+
+    def __init__(self, entity_name, material=None, is_open=True, locked=False, secret=False, *args):
+        """
+        A pretty messy setup - the basics of the setup are provided, the rest are in args
+        :param entity_name: string - should be some kind of door at least. Maybe Gate or Portal too though.
+        :param material: string - what the door is made of.
+        :param is_open: bool - whether the door starts open or not.
+        :param locked: bool - whether the door is locked or not.
+        :param secret: bool - whether the door is secret or not.
+        :param args: Anything extra for locked or secret that we need.
+        """
+
+        Furnishing.__init__(entity_name, material)
+
+        self.open = is_open
+        self.locked = locked
+        if secret:
+            self.player_spotted = False
+        if len(args) > 0:
+            pass  # TODO: Set this up
+
+        if not self.open:
+            self.symbol = "+"
+            self.block_los = True
+            self.block_move = 3
+            self.safe_move = 3
 
 
 ##################################################################################################################
@@ -1932,6 +2011,31 @@ class MapLevel(object):
 
         del self.furnishing_locations[(furnishing.x_loc, furnishing.y_loc)]
 
+    def interact_with(self, x_loc, y_loc, actor):
+        """
+        Attempts to interact with a furnishing at the specified coordinate
+        :param x_loc: integer - the x coordinate
+        :param y_loc: integer - the y coordinate
+        :param actor: Actor class - the actor doing the interaction
+        :return: True if the interaction was successful, False otherwise
+        """
+
+        if (x_loc, y_loc) not in self.furnishing_locations:
+            if actor.has_trait("Player"):
+                interface.add_output_text("There is nothing there to interact with")
+            else:
+                interface.add_debug_text("Actor {} tried to interact with a non-existent furnishing at {}, {}".format(
+                    actor, x_loc, y_loc))
+            return False
+
+        return_val = True
+        furnishing = self.furnishing_locations[(x_loc, y_loc)]
+        for trigger, function in furnishing.functions[::-1]:
+            if trigger == "Interaction":
+                if not FURNISHING_FUNCTION_DICT[function](furnishing, actor, self):
+                    return_val = False
+
+        return return_val
     # --------------------------------------------------------------------------------------------------------
     #                                       Actor functions
     # --------------------------------------------------------------------------------------------------------

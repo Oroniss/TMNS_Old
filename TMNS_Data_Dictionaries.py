@@ -31,7 +31,7 @@ furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor    
     "Closet":           ("#",   True,     3,  3,  5,  None,         None,               None),
     "Circle":           (".",   False,    0,  0,  1,  None,         None,               None),
     "Compartment":      ("+",   False,    0,  0,  1,  None,         None,               None),
-    "Door":             ("+",   True,     3,  3,  4,  None,         None,               None),
+    "Door":             ("-",   False,    0,  0,  4,  None,         None,               None),
     "Empty":            ("",    False,    0,  0,  1,  None,         None,               None),
     "Fountain":         ("&",   False,    0,  0,  3,  None,         None,               None),
     "Grease":           (" ",   False,    0,  2,  2,  "Steel Grey", None,               "Oil"),
@@ -49,19 +49,7 @@ furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor    
 }
 
 furnishing_functions = {  # Tuples of (type, function_name)
-    "Barricade":        (),
-    "Cage":             (),
-    "Circle":           (),
-    "Empty":            (),
-    "Grease":           (),  # TODO: Add stuff here
-    "Ice":              (),  # TODO: Add stuff here
-    "Laboratory":       (),
-    "Pedestal":         (),
-    "Rubbish":          (),
-    "Stair":            (),
-    "Statue":           (),
-    "Web":              (),
-    "Well":             ()
+    "Door":             (("Interaction", "Door Use"),),
 }
 
 ##################################################################################################################
