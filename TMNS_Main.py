@@ -22,9 +22,11 @@ Current progress and changes.
 16/10/17: Got interaction with doors working. Seems to be OK. Found a bug in output text too.
 16/10/17: Added a misc dictionary to Entity. Should be able to use it to remove most smaller classes.
 16/10/17: Refactored out the Door class. Everything still seems to work OK.
+17/10/17: Created the level transition setup and use functions.
 
 Next Steps
 
+Figure out a better way to implement the setup functions.
 Add the level transition objects.
 
 Add level 2.
@@ -1389,9 +1391,47 @@ def door_setup(door, is_open=True, locked=False, secret=False, *args):
         door.block_move = 3
         door.safe_move = 3
 
+
+def level_transition_use(furnishing, actor, level):
+    """
+    The function for using a level transition object.
+    :param furnishing: The stair/ladder/well, etc.
+    :param actor: Actor doing the moving - at this stage only the player.
+    :param level: The current level
+    :return: bool - True if successful, False otherwise.
+    """
+
+    # TODO: Update this - think about conditional use, monster use, etc.
+    if not actor.has_trait("Player"):
+        interface.add_debug_text("{} tried to use a level transition object at {} {}".format(
+            actor, furnishing.x_loc, furnishing.y_loc))
+        return True  # Return True so the monster doesn't hang up the game.
+
+    interface.game.level_transition(furnishing.misc["Level Transition New Level Name"],
+                                    furnishing.misc["Level Transition New Level x_loc"],
+                                    furnishing.misc["Level Transition New Level y_loc"], level)
+    return True
+
+
+def level_transition_setup(level_transition, new_level, new_x, new_y):
+    """
+    Sets up a level transition object.
+    :param level_transition: The stair/ladder/well, etc.
+    :param new_level: String - the level id of the level at the other end of the transition.
+    :param new_x: Int - the x_loc at the other end
+    :param new_y: Int - the y_loc at the other end
+    """
+
+    level_transition.misc["Level Transition New Level Name"] = new_level
+    level_transition.misc["Level Transition New Level x_loc"] = new_x
+    level_transition.misc["Level Transition New Level y_loc"] = new_y
+
+
 FURNISHING_FUNCTION_DICT = {
     "Door Use":     door_use,
-    "Door Setup":   door_setup
+    "Door Setup":   door_setup,
+    "Level Transition Use":         level_transition_use,
+    "Level Transition Setup":       level_transition_setup
 }
 
 
@@ -2195,15 +2235,16 @@ class Game(object):
 
         self.timer.insert(0, player)
 
-    def level_transition(self, level_name, x_loc, y_loc):
+    def level_transition(self, level_name, x_loc, y_loc, current_level=None):
         """
         Moves the player to the specified location at the other level
         :param level_name: string - the new level
         :param x_loc: integer - the new x_coordinate
         :param y_loc: integer - the new y_coordinate
+        :param current_level: MapLevel - the level being left.
         """
 
-        if self.current_level is not None:
+        if current_level is not None:
             # TODO: Pack up the old level
             pass
 
