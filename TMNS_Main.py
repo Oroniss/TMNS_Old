@@ -23,10 +23,10 @@ Current progress and changes.
 16/10/17: Added a misc dictionary to Entity. Should be able to use it to remove most smaller classes.
 16/10/17: Refactored out the Door class. Everything still seems to work OK.
 17/10/17: Created the level transition setup and use functions.
+17/10/17: Refactored Furnishing setup functions - seems better now.
 
 Next Steps
 
-Figure out a better way to implement the setup functions.
 Add the level transition objects.
 
 Add level 2.
@@ -1519,8 +1519,8 @@ class Furnishing(Entity):
         new_furnishing = Furnishing(entity_name, material)
         new_furnishing.x_loc = x_loc
         new_furnishing.y_loc = y_loc
-        if entity_name + " Setup" in FURNISHING_FUNCTION_DICT:
-            FURNISHING_FUNCTION_DICT[entity_name + " Setup"](new_furnishing, *args)
+        if len(args) > 0:
+            FURNISHING_FUNCTION_DICT[args[0]](new_furnishing, *args[1::])
 
         return new_furnishing
 
@@ -2245,23 +2245,25 @@ class Game(object):
         """
 
         if current_level is not None:
-            # TODO: Pack up the old level
-            pass
+            current_level.remove_actor(self.player)
+            # TODO: Gather up the minions/allies and anyone else we want to check on.
+            # TODO: Pack up the old level - mostly just the monsters.
 
         # Check if the player has visited the level before.
         if level_name in self.level_dict:
-            # TODO: Fix this up properly
-            pass
+            self.current_level = self.level_dict[level_name]
+            # TODO: Add checks to unpack any monsters that have been quiet.
+            # TODO: Also check for blockages at the bottom of the transition.
 
         else:
             new_level = MapLevel(level_name)
             self.level_dict[level_name] = new_level
             self.current_level = new_level
 
-            # TODO: Fix this up properly
-            self.player.x_loc = x_loc
-            self.player.y_loc = y_loc
-            self.current_level.add_actor(self.player)
+        # TODO: Fix this up properly - deploy any minions/allies.
+        self.player.x_loc = x_loc
+        self.player.y_loc = y_loc
+        self.current_level.add_actor(self.player)
 
     def run_game(self):
         """
