@@ -19,6 +19,7 @@ Current progress and changes.
 13/10/17: Added some more furnishing stuff.
 14/10/17: Got furnishings spawning in the actual game. Most of the level 1 ones are now in.
 14/10/17: Got interaction setup and started work on doors. Still needs completing though.
+16/10/17: Got interaction with doors working. Seems to be OK. Found a bug in output text too.
 
 Next Steps
 
@@ -408,8 +409,37 @@ class Interface(object):
         :return: a (x_dif, y_dif) tuple, or False if the player cancels.
         """
 
+        if message is None:
+            extra = ""
+            if center:
+                extra = "Enter for here. "
+            message = "Which direction? {}ESC to cancel".format(extra)
+
         while True:
-            pass
+            self.add_output_text(message)
+
+            key = Interface.get_next_key()
+
+            if key == "Left":
+                return -1, 0
+            elif key == "Right":
+                return 1, 0
+            elif key == "Up":
+                return 0, -1
+            elif key == "Down":
+                return 0, 1
+            elif key == "Up_Left":
+                return -1, -1
+            elif key == "Up_Right":
+                return 1, -1
+            elif key == "Down_Left":
+                return -1, 1
+            elif key == "Down_Right":
+                return 1, 1
+            elif key == "Enter" and center:
+                return 0, 0
+            elif key == "Escape":
+                return False
 
     # --------------------------------------------------------------------------------------------------------
     #                                       Message functions
@@ -437,6 +467,8 @@ class Interface(object):
 
         if len(self.game_messages) > 50:
             self.game_messages = self.game_messages[-50::]
+
+        self.draw_output_text()
 
     def add_debug_text(self, message):
         """
@@ -1136,7 +1168,8 @@ class Interface(object):
 
         self.window.write("Message Log", x=self.TEXT_LEFT + self.TEXT_WIDTH // 2 - 6, y=self.TEXT_TOP + 1,
                           bgcolor="Black", fgcolor="White")
-        for index, (message, color) in enumerate(self.game_messages[-1:-self.TEXT_HEIGHT - 4:-1]):
+        for index in range(self.TEXT_HEIGHT - 4):
+            message, color = self.game_messages[-index - 1]
             self.window.write(message, x=self.TEXT_LEFT + 2, y=self.TEXT_TOP + 3 + index,
                               bgcolor="Black", fgcolor=color)
         self.window.update()
@@ -1154,7 +1187,8 @@ class Interface(object):
 
         self.window.write("Error Log", x=self.DB_LEFT + self.DB_WIDTH // 2 - 6, y=self.DB_TOP + 1,
                           bgcolor="Black", fgcolor="White")
-        for index, message in enumerate(self.debug_messages[-1:-self.DB_HEIGHT - 4:-1]):
+        for index in range(self.DB_HEIGHT - 4):
+            message, color = self.debug_messages[-index - 1]
             self.window.write(message, x=self.DB_LEFT + 2, y=self.DB_TOP + 3 + index,
                               bgcolor="Black", fgcolor="White")
         self.window.update()
@@ -1165,7 +1199,7 @@ class Interface(object):
         be used instead.
         """
 
-        self.window.fill(bgcolor="black")
+        self.window.fill(bgcolor="Black")
 
         self.draw_map()
         self.draw_status()
@@ -1433,7 +1467,7 @@ class Door(Furnishing):
         :param args: Anything extra for locked or secret that we need.
         """
 
-        Furnishing.__init__(entity_name, material)
+        Furnishing.__init__(self, entity_name, material)
 
         self.open = is_open
         self.locked = locked
@@ -1597,6 +1631,16 @@ class Player(Actor):
             elif key == "Right":
                 x_dif = 1
                 move = True
+
+            elif key == "U":
+                direction = interface.get_direction(center=True)
+                if not direction:
+                    continue
+                result = level.interact_with(self.x_loc + direction[0], self.y_loc + direction[1], self)
+                if result:
+                    self.next_move += 10
+                    timer.insert(self.next_move, self)
+                    break
             elif key == "V":
                 interface.view_commands()
                 interface.update_game_screen()
@@ -2028,12 +2072,21 @@ class MapLevel(object):
                     actor, x_loc, y_loc))
             return False
 
+        found_something = False
         return_val = True
         furnishing = self.furnishing_locations[(x_loc, y_loc)]
-        for trigger, function in furnishing.functions[::-1]:
+        for trigger, func in furnishing.functions[::-1]:
             if trigger == "Interaction":
-                if not FURNISHING_FUNCTION_DICT[function](furnishing, actor, self):
+                found_something = True
+                if not FURNISHING_FUNCTION_DICT[func](furnishing, actor, self):
                     return_val = False
+
+        if not found_something:
+            if actor.has_trait("Player"):
+                interface.add_output_text("You can't do anything with that!")
+            else:
+                interface.add_debug_text("Actor {} tried to use furnishing: {} at {}, {}, but couldn't".format(
+                    actor, furnishing, x_loc, y_loc))
 
         return return_val
     # --------------------------------------------------------------------------------------------------------
