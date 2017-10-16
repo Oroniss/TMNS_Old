@@ -23,7 +23,7 @@ material_properties = {  # AC,  DR, HA, SR,     AR, CR, ER, FR, NR,     HP/V,   
 #                                       Furnishing Dictionary.
 ##################################################################################################################
 
-furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor            material
+furnishing_details = {  # Sym,  BLos, BMov, SMov, Vol bgc,          fogcolor            material    Setup Function
     "Altar":            ("#",   False,    2,  2,  5,  None,         None,               None),
     "Barricade":        ("|",   False,    2,  2,  3,  None,         None,               None),
     "Cage":             ("#",   False,    2,  2,  3,  None,         None,               None),

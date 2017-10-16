@@ -20,10 +20,12 @@ Current progress and changes.
 14/10/17: Got furnishings spawning in the actual game. Most of the level 1 ones are now in.
 14/10/17: Got interaction setup and started work on doors. Still needs completing though.
 16/10/17: Got interaction with doors working. Seems to be OK. Found a bug in output text too.
+16/10/17: Added a misc dictionary to Entity. Should be able to use it to remove most smaller classes.
+16/10/17: Refactored out the Door class. Everything still seems to work OK.
 
 Next Steps
 
-Get "Use" working for doors - then add the level transition objects.
+Add the level transition objects.
 
 Add level 2.
 Fix up level transition
@@ -1267,6 +1269,8 @@ class Entity(object):
         self.fire_res = 0
         self.necr_res = 0
 
+        self.misc = dict()  # Basically here to store anything random that we might need.
+
         # Saving throws aren't here for all derived classes - since many objects just auto-fail them.
         # There is a make_save method on this class though.
 
@@ -1337,23 +1341,57 @@ def door_use(furnishing, actor, level):
     :return: True if the interaction is successful, False otherwise.
     """
 
-    if furnishing.open:
-        furnishing.open = False
-        furnishing.symbol = "+"
-        furnishing.block_move = 3
-        furnishing.safe_move = 3
-        furnishing.block_los = True
-        return True
-    elif not furnishing.locked and furnishing.player_spotted:
-        furnishing.open = True
+    if furnishing.misc["Door Open"]:
+        # Check if door is blocked.
+        if level.is_passible(furnishing.x_loc, furnishing.y_loc):
+            furnishing.misc["Door Open"] = False
+            furnishing.symbol = "+"
+            furnishing.block_move = 3
+            furnishing.safe_move = 3
+            furnishing.block_los = True
+            return True
+        elif actor.has_trait("Player"):
+            interface.add_output_text("Something is blocking the door!")
+            return False
+        else:
+            interface.add_debug_text("Actor {} tried to close a door which was blocked".format(actor))
+            return True  # Returns True to stop the monster repeatedly taking the same action.
+
+    elif not furnishing.misc["Door Locked"] and furnishing.player_spotted:
+        furnishing.misc["Door Open"] = True
         furnishing.symbol = "-"
         furnishing.block_los = False
         furnishing.block_move = 0
         furnishing.safe_move = 0
         return True
 
+
+def door_setup(door, is_open=True, locked=False, secret=False, *args):
+    """
+    Sets up the initial state of a door object.
+    :param door: The door in question.
+    :param is_open: bool - whether the door starts open or not
+    :param locked: bool - whether the door starts locked or not
+    :param secret: bool - whether the door starts concealed or not
+    :param args: Any other params related to either the locked or secret part.
+    """
+
+    door.misc["Door Open"] = is_open
+    door.misc["Door Locked"] = locked
+    if secret:
+        door.player_spotted = False
+    if len(args) > 0:
+        pass  # TODO: Set this up
+
+    if not is_open:
+        door.symbol = "+"
+        door.block_los = True
+        door.block_move = 3
+        door.safe_move = 3
+
 FURNISHING_FUNCTION_DICT = {
-    "Door Use":     door_use
+    "Door Use":     door_use,
+    "Door Setup":   door_setup
 }
 
 
@@ -1438,49 +1476,13 @@ class Furnishing(Entity):
         """
 
         # TODO: Do some thinking about whether we want to create everything from here.
-        if entity_name in ("Door", ):
-            new_furnishing = Door(entity_name, material, *args)  # args needs is_open, secret, then any extra stuff.
-        else:
-            new_furnishing = Furnishing(entity_name, material)
+        new_furnishing = Furnishing(entity_name, material)
         new_furnishing.x_loc = x_loc
         new_furnishing.y_loc = y_loc
+        if entity_name + " Setup" in FURNISHING_FUNCTION_DICT:
+            FURNISHING_FUNCTION_DICT[entity_name + " Setup"](new_furnishing, *args)
+
         return new_furnishing
-
-
-##################################################################################################################
-#                                       Door class definition
-##################################################################################################################
-
-class Door(Furnishing):
-    """
-    Pretty self explanatory - just inherits from Furnishing and adds a few extra attributes.
-    """
-
-    def __init__(self, entity_name, material=None, is_open=True, locked=False, secret=False, *args):
-        """
-        A pretty messy setup - the basics of the setup are provided, the rest are in args
-        :param entity_name: string - should be some kind of door at least. Maybe Gate or Portal too though.
-        :param material: string - what the door is made of.
-        :param is_open: bool - whether the door starts open or not.
-        :param locked: bool - whether the door is locked or not.
-        :param secret: bool - whether the door is secret or not.
-        :param args: Anything extra for locked or secret that we need.
-        """
-
-        Furnishing.__init__(self, entity_name, material)
-
-        self.open = is_open
-        self.locked = locked
-        if secret:
-            self.player_spotted = False
-        if len(args) > 0:
-            pass  # TODO: Set this up
-
-        if not self.open:
-            self.symbol = "+"
-            self.block_los = True
-            self.block_move = 3
-            self.safe_move = 3
 
 
 ##################################################################################################################
