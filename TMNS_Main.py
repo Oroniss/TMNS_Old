@@ -26,31 +26,47 @@ Current progress and changes.
 17/10/17: Refactored Furnishing setup functions - seems better now.
 17/10/17: Added Level 2 Description, Map and Furnishings
 17/10/17: Got level transition working pretty nicely.
+17/10/17: Did some tidying up and cleaning out of TODOs.
+17/10/17: Finished up version 0.2
 
 Next Steps
 
-Get movement up and running properly.
-Clear out TODOs
-Clear out any scripts/functions from old version that are fixable.
-
 Start version 03
 
-Player stats and damage
+Player stats and damage and skills
 Player death
+Get movement up and running properly.
 Traps
 Complete available functions/scripts
 
 Start version 04
 
+Add actors to the map
+Design attack functions
+Get basic grammar working
+
+Start version
+
 Items
-Item functions
+Consumables, hunger, potions
+Loot generation
 Available functions/scripts
 
-Start version 05
+Start version
 
-Player spells and abilities
+Equipment and inventory
+Cursed items
 
-Start version 06
+Start version
+
+Player skill-up
+Player abilities
+Effects
+
+Start version
+
+Player spells
+Wands
 
 Need to define the move types somewhere 0 = walking, 1 = climb, 2 = fly, 3 = phase, 4 = impassible.
 """
@@ -1150,9 +1166,22 @@ class Interface(object):
 
         self.window.update()
 
-    # TODO: Implement
-    def draw_status(self):
-        pass
+    def draw_status(self, player=None):
+        """
+        Draws the timer, and any status effects on the player.
+        :param player: The player object, default is just to use the one on the interface.
+        """
+
+        # TODO: Add the actual status effects here
+        if player is None:
+            pass
+
+        self.window.fill(bgcolor="Black", region=self.status_display)
+        self.window.write("Status Menu", x=self.STATUS_LEFT + (self.STATUS_WIDTH - 11) // 2,
+                          y=self.STATUS_TOP + 1, bgcolor="Black", fgcolor="White")
+        self.window.write("Time taken: {}".format(self.game.timer.current_time // 10),
+                          x=self.STATUS_LEFT + 5, y=self.STATUS_TOP + 3, bgcolor="Black", fgcolor="White")
+        self.window.update()
 
     # TODO: Implement
     def draw_character(self):
@@ -1515,7 +1544,6 @@ class Furnishing(Entity):
         :return: The new furnishing object
         """
 
-        # TODO: Do some thinking about whether we want to create everything from here.
         new_furnishing = Furnishing(entity_name, material)
         new_furnishing.x_loc = x_loc
         new_furnishing.y_loc = y_loc
@@ -2106,6 +2134,15 @@ class MapLevel(object):
         :param actor: Actor class - the actor doing the interaction
         :return: True if the interaction was successful, False otherwise
         """
+
+        if not self.is_valid_map_coord(x_loc, y_loc):
+            if actor.has_trait("Player"):
+                interface.add_output_text("Stay within the map!")
+                return False
+            else:
+                interface.add_debug_text("Actor {} tried to interact at an invalid location {}, {}".format(
+                    actor, x_loc, y_loc))
+                return True
 
         if (x_loc, y_loc) not in self.furnishing_locations:
             if actor.has_trait("Player"):
