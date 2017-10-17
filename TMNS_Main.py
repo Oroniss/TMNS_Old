@@ -24,15 +24,14 @@ Current progress and changes.
 16/10/17: Refactored out the Door class. Everything still seems to work OK.
 17/10/17: Created the level transition setup and use functions.
 17/10/17: Refactored Furnishing setup functions - seems better now.
+17/10/17: Added Level 2 Description, Map and Furnishings
+17/10/17: Got level transition working pretty nicely.
 
 Next Steps
 
-Add the level transition objects.
-
-Add level 2.
-Fix up level transition
 Get movement up and running properly.
 Clear out TODOs
+Clear out any scripts/functions from old version that are fixable.
 
 Start version 03
 
@@ -1425,6 +1424,7 @@ def level_transition_setup(level_transition, new_level, new_x, new_y):
     level_transition.misc["Level Transition New Level Name"] = new_level
     level_transition.misc["Level Transition New Level x_loc"] = new_x
     level_transition.misc["Level Transition New Level y_loc"] = new_y
+    level_transition.functions.append(("Interaction", "Level Transition Use"))
 
 
 FURNISHING_FUNCTION_DICT = {
@@ -1721,6 +1721,7 @@ class MapLevel(object):
     tile_dict = {  # Tile       bgcolor         fogcolor            description     allowLOS    minMove
         0:      ("wall",        "Stone Wall",   "Stone Wall",       "a wall",       False,      3),
         1:      ("floor",       "Stone Floor",  "Stone Floor Fog",  "",             True,       0),
+        2:      ("water",       "Water",        "Water Fog",        "running water", True,      0),
         3:      ("space",       "Midnight Blue", "Midnight Blue Fog", "a long drop", True,      2)}
 
     # Translation tables for the FOV and LOS calculations
