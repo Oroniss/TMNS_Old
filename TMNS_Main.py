@@ -7,9 +7,13 @@ It is all going to reside in a single file though, just for the sake of convenie
 
 Changelog for version 03
 
+
 Current progress and changes.
 
 Added randomisation functions.
+Started work on the Monster class definition.
+Added the create monster function.
+
 
 Next Steps
 
@@ -1679,6 +1683,63 @@ class Actor(Entity):
     # TODO: Think through the arguments here
     def move(self):
         pass
+
+    def add_template(self, template):
+        pass
+
+
+##################################################################################################################
+#                                       Monster class definition
+##################################################################################################################
+
+class Monster(Actor):
+    """
+    Pretty self explanatory - inherits from Actor and thus from Entity
+    """
+
+    def __init__(self, entity_name, elite=False, summon=False):
+        """
+        Basically the standard entity constructor signature
+        :param entity_name: What type of monster it is.
+        :param elite: bool - Whether it is a boss monster or not
+        :param summon: bool - Whether the creature has been magically summoned or not.
+                       Affects things like loot generation.
+        """
+
+        Actor.__init__(self, entity_name)
+
+        if elite:
+            pass
+
+        if summon:
+            pass
+
+    @staticmethod
+    def create_monster(entity_name, x_loc, y_loc, templates=None, elite=False, summoned=False, *args):
+        """
+        Standard function to create a new monster.
+        :param entity_name: string - the type of monster
+        :param x_loc: integer or None - the x coordinate - None if not on the map
+        :param y_loc: integer or None - the y coordinate - None if not on the map
+        :param templates: None or a list/tuple of strings
+        :param elite: Bool - whether the monster is a boss or not
+        :param summoned: Bool - whether the monster is summoned or not
+        :param args: Anything else we need.
+        :return: The monster in question
+        """
+
+        new_monster = Monster(entity_name, elite, summoned)
+        new_monster.x_loc = x_loc
+        new_monster.y_loc = y_loc
+
+        if templates is not None:
+            for template in templates:
+                new_monster.add_template(template)
+
+        if len(args) > 0:
+            ACTOR_FUNCTION_DICT[args[0]](new_monster, args[1::])
+
+        return new_monster
 
 
 ##################################################################################################################
