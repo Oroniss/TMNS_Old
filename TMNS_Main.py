@@ -5,45 +5,25 @@ from the Halfbreed work into the game.
 
 It is all going to reside in a single file though, just for the sake of convenience.
 
-Changelog for version 02
+Changelog for version 03
 
 Current progress and changes.
 
-7/10/17: Added the base entity class and started the data dictionary.
-8/10/17: Fleshed out Entity, Actor, constructors and dictionaries.
-9/10/17: Got entity drawing correctly in draw_map
-10/10/17: Started work on the Furnishing class - got most of the basics sorted out.
-11/10/17: Finished up the Furnishing class definition.
-12/10/17: Added the furnishing related function to the MapLevel class.
-12/10/17: Added the furnishing information to checks for LOS, drawing, etc.
-13/10/17: Added some more furnishing stuff.
-14/10/17: Got furnishings spawning in the actual game. Most of the level 1 ones are now in.
-14/10/17: Got interaction setup and started work on doors. Still needs completing though.
-16/10/17: Got interaction with doors working. Seems to be OK. Found a bug in output text too.
-16/10/17: Added a misc dictionary to Entity. Should be able to use it to remove most smaller classes.
-16/10/17: Refactored out the Door class. Everything still seems to work OK.
-17/10/17: Created the level transition setup and use functions.
-17/10/17: Refactored Furnishing setup functions - seems better now.
-17/10/17: Added Level 2 Description, Map and Furnishings
-17/10/17: Got level transition working pretty nicely.
-17/10/17: Did some tidying up and cleaning out of TODOs.
-17/10/17: Finished up version 0.2
+Added randomisation functions.
 
 Next Steps
 
-Start version 03
-
-Player stats and damage and skills
-Player death
+Add actors to the map
+Stats and skills
 Get movement up and running properly.
-Traps
 Complete available functions/scripts
 
 Start version 04
 
-Add actors to the map
 Design attack functions
 Get basic grammar working
+Traps
+Player damage and death
 
 Start version
 
@@ -80,6 +60,7 @@ import string
 import textwrap
 import collections
 import copy
+import random
 from TMNS_Levels import *
 from TMNS_Data_Dictionaries import *
 
@@ -223,6 +204,60 @@ class Timer(object):
         self.current_time += 1
 
 
+# --------------------------------------------------------------------------------------------------------
+#                                       Randomisation Functions
+# --------------------------------------------------------------------------------------------------------
+
+def dice(num, *args):
+    """
+    Takes one to three arguments. If 1, it should be a tuple of length 2 or 3.
+    Note that a d20 is a separate function, calling this with die_max 20 will return a result
+    from 1 to 20, not -10, 2-19, 30.
+    :param num: Either the number of dice, or a tuple of (num, die_max) or (num, die_max, add).
+    :param args: Either length 0, 1, or 2 - depending on the form of num.
+    :return: integer - result.
+    """
+
+    # Figure out what we got called with and how to chop it up.
+    if len(args) == 1:
+        die_max = args[0]
+        add = 0
+    elif len(args) == 2:
+        die_max, add = args
+    elif len(num) == 2:
+        num, die_max = num
+        add = 0
+    else:
+        num, die_max, add = num
+
+    # Get the actual random result
+    total = 0
+    for i in range(num):
+        total += random.randint(1, die_max)
+    total += add
+
+    return total
+
+
+def d20(add):
+    """
+    Simulates a d20, so 1 corresponds to -10 and 20 corresponds to 30.
+    If the goal is to get a random number between 1 and 20, use dice instead.
+    :param add: integer the bonus to the roll.
+    :return integer - the result of the roll.
+    """
+
+    result = random.randint(1, 20)
+    if result == 1:
+        result = -10
+    elif result == 20:
+        result = 30
+
+    result += add
+
+    return result
+
+
 ##################################################################################################################
 #                                       Interface class
 ##################################################################################################################
@@ -309,7 +344,7 @@ class Interface(object):
         """
 
         self.game = None
-        self.version_number = "0.02"  # TODO: Keep this up to date
+        self.version_number = "0.03"  # TODO: Keep this up to date
 
         # Now process the interface specific parameters.
         config = False
@@ -1361,106 +1396,112 @@ class Entity(object):
 #                                       Furnishing class definition
 ##################################################################################################################
 
-# noinspection PyUnusedLocal
-def door_use(furnishing, actor, level):
-    """
-    Standard setup for an interaction function.
-    :param furnishing: The furnishing in question.
-    :param actor: The actor trying to use it.
-    :param level: The level it's on.
-    :return: True if the interaction is successful, False otherwise.
+class FurnishingFunctions(object):
+    """ Class to hold all the random functions needed for furnishings.
+        They are all implemented as static methods.
     """
 
-    if furnishing.misc["Door Open"]:
-        # Check if door is blocked.
-        if level.is_passible(furnishing.x_loc, furnishing.y_loc):
-            furnishing.misc["Door Open"] = False
-            furnishing.symbol = "+"
-            furnishing.block_move = 3
-            furnishing.safe_move = 3
-            furnishing.block_los = True
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def door_use(furnishing, actor, level):
+        """
+        Standard setup for an interaction function.
+        :param furnishing: The furnishing in question.
+        :param actor: The actor trying to use it.
+        :param level: The level it's on.
+        :return: True if the interaction is successful, False otherwise.
+        """
+
+        if furnishing.misc["Door Open"]:
+            # Check if door is blocked.
+            if level.is_passible(furnishing.x_loc, furnishing.y_loc):
+                furnishing.misc["Door Open"] = False
+                furnishing.symbol = "+"
+                furnishing.block_move = 3
+                furnishing.safe_move = 3
+                furnishing.block_los = True
+                return True
+            elif actor.has_trait("Player"):
+                interface.add_output_text("Something is blocking the door!")
+                return False
+            else:
+                interface.add_debug_text("Actor {} tried to close a door which was blocked".format(actor))
+                return True  # Returns True to stop the monster repeatedly taking the same action.
+
+        elif not furnishing.misc["Door Locked"] and furnishing.player_spotted:
+            furnishing.misc["Door Open"] = True
+            furnishing.symbol = "-"
+            furnishing.block_los = False
+            furnishing.block_move = 0
+            furnishing.safe_move = 0
             return True
-        elif actor.has_trait("Player"):
-            interface.add_output_text("Something is blocking the door!")
-            return False
-        else:
-            interface.add_debug_text("Actor {} tried to close a door which was blocked".format(actor))
-            return True  # Returns True to stop the monster repeatedly taking the same action.
 
-    elif not furnishing.misc["Door Locked"] and furnishing.player_spotted:
-        furnishing.misc["Door Open"] = True
-        furnishing.symbol = "-"
-        furnishing.block_los = False
-        furnishing.block_move = 0
-        furnishing.safe_move = 0
+    @staticmethod
+    def door_setup(door, is_open=True, locked=False, secret=False, *args):
+        """
+        Sets up the initial state of a door object.
+        :param door: The door in question.
+        :param is_open: bool - whether the door starts open or not
+        :param locked: bool - whether the door starts locked or not
+        :param secret: bool - whether the door starts concealed or not
+        :param args: Any other params related to either the locked or secret part.
+        """
+
+        door.misc["Door Open"] = is_open
+        door.misc["Door Locked"] = locked
+        if secret:
+            door.player_spotted = False
+        if len(args) > 0:
+            pass  # TODO: Set this up
+
+        if not is_open:
+            door.symbol = "+"
+            door.block_los = True
+            door.block_move = 3
+            door.safe_move = 3
+
+    @staticmethod
+    def level_transition_use(furnishing, actor, level):
+        """
+        The function for using a level transition object.
+        :param furnishing: The stair/ladder/well, etc.
+        :param actor: Actor doing the moving - at this stage only the player.
+        :param level: The current level
+        :return: bool - True if successful, False otherwise.
+        """
+
+        # TODO: Update this - think about conditional use, monster use, etc.
+        if not actor.has_trait("Player"):
+            interface.add_debug_text("{} tried to use a level transition object at {} {}".format(
+                actor, furnishing.x_loc, furnishing.y_loc))
+            return True  # Return True so the monster doesn't hang up the game.
+
+        interface.game.level_transition(furnishing.misc["Level Transition New Level Name"],
+                                        furnishing.misc["Level Transition New Level x_loc"],
+                                        furnishing.misc["Level Transition New Level y_loc"], level)
         return True
 
+    @staticmethod
+    def level_transition_setup(level_transition, new_level, new_x, new_y):
+        """
+        Sets up a level transition object.
+        :param level_transition: The stair/ladder/well, etc.
+        :param new_level: String - the level id of the level at the other end of the transition.
+        :param new_x: Int - the x_loc at the other end
+        :param new_y: Int - the y_loc at the other end
+        """
 
-def door_setup(door, is_open=True, locked=False, secret=False, *args):
-    """
-    Sets up the initial state of a door object.
-    :param door: The door in question.
-    :param is_open: bool - whether the door starts open or not
-    :param locked: bool - whether the door starts locked or not
-    :param secret: bool - whether the door starts concealed or not
-    :param args: Any other params related to either the locked or secret part.
-    """
-
-    door.misc["Door Open"] = is_open
-    door.misc["Door Locked"] = locked
-    if secret:
-        door.player_spotted = False
-    if len(args) > 0:
-        pass  # TODO: Set this up
-
-    if not is_open:
-        door.symbol = "+"
-        door.block_los = True
-        door.block_move = 3
-        door.safe_move = 3
-
-
-def level_transition_use(furnishing, actor, level):
-    """
-    The function for using a level transition object.
-    :param furnishing: The stair/ladder/well, etc.
-    :param actor: Actor doing the moving - at this stage only the player.
-    :param level: The current level
-    :return: bool - True if successful, False otherwise.
-    """
-
-    # TODO: Update this - think about conditional use, monster use, etc.
-    if not actor.has_trait("Player"):
-        interface.add_debug_text("{} tried to use a level transition object at {} {}".format(
-            actor, furnishing.x_loc, furnishing.y_loc))
-        return True  # Return True so the monster doesn't hang up the game.
-
-    interface.game.level_transition(furnishing.misc["Level Transition New Level Name"],
-                                    furnishing.misc["Level Transition New Level x_loc"],
-                                    furnishing.misc["Level Transition New Level y_loc"], level)
-    return True
-
-
-def level_transition_setup(level_transition, new_level, new_x, new_y):
-    """
-    Sets up a level transition object.
-    :param level_transition: The stair/ladder/well, etc.
-    :param new_level: String - the level id of the level at the other end of the transition.
-    :param new_x: Int - the x_loc at the other end
-    :param new_y: Int - the y_loc at the other end
-    """
-
-    level_transition.misc["Level Transition New Level Name"] = new_level
-    level_transition.misc["Level Transition New Level x_loc"] = new_x
-    level_transition.misc["Level Transition New Level y_loc"] = new_y
-    level_transition.functions.append(("Interaction", "Level Transition Use"))
+        level_transition.misc["Level Transition New Level Name"] = new_level
+        level_transition.misc["Level Transition New Level x_loc"] = new_x
+        level_transition.misc["Level Transition New Level y_loc"] = new_y
+        level_transition.functions.append(("Interaction", "Level Transition Use"))
 
 
 FURNISHING_FUNCTION_DICT = {
-    "Door Use":     door_use,
-    "Door Setup":   door_setup,
-    "Level Transition Use":         level_transition_use,
-    "Level Transition Setup":       level_transition_setup
+    "Door Use":                     FurnishingFunctions.door_use,
+    "Door Setup":                   FurnishingFunctions.door_setup,
+    "Level Transition Use":         FurnishingFunctions.level_transition_use,
+    "Level Transition Setup":       FurnishingFunctions.level_transition_setup
 }
 
 
@@ -1556,6 +1597,17 @@ class Furnishing(Entity):
 ##################################################################################################################
 #                                       Actor class definition
 ##################################################################################################################
+
+class ActorFunctions(object):
+    """
+    Class to keep track of all the actor functions (may be broken down somewhat, we'll see.
+    Likely at least AI and Monster/Player specific stuff will land elsewhere.
+    """
+
+ACTOR_FUNCTION_DICT = {
+
+}
+
 
 class Actor(Entity):
     """
@@ -2258,7 +2310,7 @@ class Game(object):
         :param gm_options:
         """
 
-        self.version_number = "0.02"  # TODO: Keep this up to date
+        self.version_number = "0.03"  # TODO: Keep this up to date
 
         self.player = player
         self.character_class = player.character_class
