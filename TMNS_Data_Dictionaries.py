@@ -60,19 +60,368 @@ furnishing_functions = {  # Tuples of (type, function_name)
 
 # Actor traits
 actor_traits = {
-    "Player":           ("Player",)
+    "Player":           ("Player",),
+    # Aberrations
+    "Darkmantle":       (),
+    # Animals
+    "Giant Ant":        (),
+    "Giant Badger":     (),
+    "Bat":              (),
+    "Giant Bee":        (),
+    "Fire Beetle":      ("Beetle", "Insect", "Animal"),
+    "Horned Beetle":    (),
+    "Centipede":        (),
+    "Dog":              (),
+    "Lizard":           (),
+    "Pony":             (),
+    "Rat":              (),
+    "Dire Rat":         (),
+    "Scorpion":         (),
+    "Viper":            (),
+    "Spider":           (),
+    "Stirge":           (),
+    "Weasel":           (),
+    "Wolf":             (),
+    # Constructs
+    "Earthen Statue":   (),
+    # Devils
+    "Black Abishai":    (),
+    "Lemure":           (),
+    # Dragons
+    "Young White Dragon": (),
+    "Young Black Dragon": (),
+    "Small Zombie Dragon": (),
+    # Dwarves
+    "Deep Dwarf":       (),
+    # Elementals
+    "Earth Vermin":     (),
+    "Earth Elemental":  ("Elemental", "Earth", "Immune to Poison", "Immune to Crits", "Immune to Disease",
+                         "Immune to Mental"),
+    "Fire Vermin":      (),
+    "Lightning Vermin": (),
+    # Elves
+    "High Elf":         (),
+    "Wood Elf":         (),
+    # Goblins
+    "Goblin":           (),
+    # Halflings
+    "Halfling":         (),
+    # Kobolds
+    "Kobold":           (),
+    "Kobold Acolyte":   ("Humanoid", "Reptile", "Kobold", "Divine"),
+    "Kobold Apprentice": ("Humanoid", "Reptile", "Kobold", "Arcane"),
+    "Kobold Scout":     (),
+    # Lycanthropes
+    "Wererat":          (),
+    # Misc
+    "Fire Beetle Nest": (),
+    # Undead
+    "Skeleton":         (),
+    "Skeleton Archer":  (),
+    "Zombie":           ()
 }
 
 # Actor details
-actor_details = {   # Sym   Fgcolor         Align   Sub/Ob          Poss    Cha_1   VD  Vis
-    "Player":       ("@",   "Black",        "Good", "You",          "Your", 1,      6,  0)
+actor_details = {           # Sym   Fgcolor         Align   Sub/Ob          Poss    Cha_1   VD  Vis
+    "Player":               ("@",   "Black",        "Good", "You",          "Your", 1,      6,  0),
+    # Aberrations
+    "Darkmantle": (),
+    # Animals
+    "Giant Ant": (),
+    "Giant Badger": (),
+    "Bat": (),
+    "Giant Bee": (),
+    "Fire Beetle":          ("b",   "Red",          "Neut", "a fire beetle", "its", 1,      5,  4),
+    "Horned Beetle": (),
+    "Centipede": (),
+    "Dog": (),
+    "Lizard": (),
+    "Pony": (),
+    "Rat": (),
+    "Dire Rat": (),
+    "Scorpion": (),
+    "Viper": (),
+    "Spider": (),
+    "Stirge": (),
+    "Weasel": (),
+    "Wolf": (),
+    # Constructs
+    "Earthen Statue": (),
+    # Devils
+    "Black Abishai": (),
+    "Lemure": (),
+    # Dragons
+    "Young White Dragon": (),
+    "Young Black Dragon": (),
+    "Small Zombie Dragon": (),
+    # Dwarves
+    "Deep Dwarf": (),
+    # Elementals
+    "Earth Vermin": (),
+    "Earth Elemental":      ("E", "Red Brown",   "Neut", "an earth elemental", "its", 3, 4,  0),
+    "Fire Vermin": (),
+    "Lightning Vermin": (),
+    # Elves
+    "High Elf": (),
+    "Wood Elf": (),
+    # Goblins
+    "Goblin": (),
+    # Halflings
+    "Halfling": (),
+    # Kobolds
+    "Kobold": (),
+    "Kobold Acolyte":       ("k",   "White",    "Evil", "a kobold acolyte",     "her",  2,  5,  0),
+    "Kobold Apprentice":    ("k",  "Magic Purple", "Evil", "a kobold apprentice",  "his",  2, 6, 0),
+    "Kobold Scout": (),
+    # Lycanthropes
+    "Wererat": (),
+    # Misc
+    "Fire Beetle Nest": (),
+    # Undead
+    "Skeleton": (),
+    "Skeleton Archer": (),
+    "Zombie": ()
 }
 
 # Actor Stats
-actor_stats = {    # Str Int Wis Dex Con    MvL MS      Fort,   Refl,   Will,   hp
-    "Player":       (11, 11, 11, 11, 11,     0, 10,     0,      0,      0,      (1, 10))
+actor_stats = {             # Str Int Wis Dex Con    MvL MS     Fort,   Refl,   Will,   hp
+    "Player":               (11, 11, 11, 11, 11,     0, 10,     0,      0,      0,      10),
+    # Aberrations
+    "Darkmantle": (),
+    # Animals
+    "Giant Ant": (),
+    "Giant Badger": (),
+    "Bat": (),
+    "Giant Bee": (),
+    "Fire Beetle":          (13, 0,  11, 9,  13,    0, 14,      3,      0,      0,      8),
+    "Horned Beetle": (),
+    "Centipede": (),
+    "Dog": (),
+    "Lizard": (),
+    "Pony": (),
+    "Rat": (),
+    "Dire Rat": (),
+    "Scorpion": (),
+    "Viper": (),
+    "Spider": (),
+    "Stirge": (),
+    "Weasel": (),
+    "Wolf": (),
+    # Constructs
+    "Earthen Statue": (),
+    # Devils
+    "Black Abishai": (),
+    "Lemure": (),
+    # Dragons
+    "Young White Dragon": (),
+    "Young Black Dragon": (),
+    "Small Zombie Dragon": (),
+    # Dwarves
+    "Deep Dwarf": (),
+    # Elementals
+    "Earth Vermin": (),
+    "Earth Elemental":      (15, 2,  11, 7,  15,    0, 16,      5,      1,      3,      8),
+    "Fire Vermin": (),
+    "Lightning Vermin": (),
+    # Elves
+    "High Elf": (),
+    "Wood Elf": (),
+    # Goblins
+    "Goblin": (),
+    # Halflings
+    "Halfling": (),
+    # Kobolds
+    "Kobold": (),
+    "Kobold Acolyte":       (11, 13, 16, 13, 13,    0, 9,       3,      0,      3,      8),
+    "Kobold Apprentice":    (7,  16, 11, 15, 11,    0, 9,       1,      1,      3,      6),
+    "Kobold Scout": (),
+    # Lycanthropes
+    "Wererat": (),
+    # Misc
+    "Fire Beetle Nest": (),
+    # Undead
+    "Skeleton": (),
+    "Skeleton Archer": (),
+    "Zombie": ()
 }
 
-actor_defenses = {  # AC,    DR,    Hard,   SR,     AR, CR, ER, FR, NR
-    "Player":       (10,    False,  0,      0,      0,  0,  0,  0,  0)
+actor_defenses = {          # AC,    DR,    Hard,   SR,     AR, CR, ER, FR, NR
+    "Player":               (10,    False,  0,      0,      0,  0,  0,  0,  0),
+    # Aberrations
+    "Darkmantle": (),
+    # Animals
+    "Giant Ant": (),
+    "Giant Badger": (),
+    "Bat": (),
+    "Giant Bee": (),
+    "Fire Beetle":          (16,    False,  0,      0,      0,  0,  0,  0,  0),
+    "Horned Beetle": (),
+    "Centipede": (),
+    "Dog": (),
+    "Lizard": (),
+    "Pony": (),
+    "Rat": (),
+    "Dire Rat": (),
+    "Scorpion": (),
+    "Viper": (),
+    "Spider": (),
+    "Stirge": (),
+    "Weasel": (),
+    "Wolf": (),
+    # Constructs
+    "Earthen Statue": (),
+    # Devils
+    "Black Abishai": (),
+    "Lemure": (),
+    # Dragons
+    "Young White Dragon": (),
+    "Young Black Dragon": (),
+    "Small Zombie Dragon": (),
+    # Dwarves
+    "Deep Dwarf": (),
+    # Elementals
+    "Earth Vermin": (),
+    "Earth Elemental":      (18,    False,  0,      0,      0,  0,  0,  0,  0),
+    "Fire Vermin": (),
+    "Lightning Vermin": (),
+    # Elves
+    "High Elf": (),
+    "Wood Elf": (),
+    # Goblins
+    "Goblin": (),
+    # Halflings
+    "Halfling": (),
+    # Kobolds
+    "Kobold": (),
+    "Kobold Acolyte":       (16,    False,  0,      0,      0,  0,  0,  0,  0),
+    "Kobold Apprentice":    (14,    False,  0,      0,      0,  0,  0,  0,  0),
+    "Kobold Scout": (),
+    # Lycanthropes
+    "Wererat": (),
+    # Misc
+    "Fire Beetle Nest": (),
+    # Undead
+    "Skeleton": (),
+    "Skeleton Archer": (),
+    "Zombie": ()
+}
+
+monster_details = {  # CR, Demeanor, AI Functions
+    # Aberrations
+    "Darkmantle": (),
+    # Animals
+    "Giant Ant": (),
+    "Giant Badger": (),
+    "Bat": (),
+    "Giant Bee": (),
+    "Fire Beetle": (),
+    "Horned Beetle": (),
+    "Centipede": (),
+    "Dog": (),
+    "Lizard": (),
+    "Pony": (),
+    "Rat": (),
+    "Dire Rat": (),
+    "Scorpion": (),
+    "Viper": (),
+    "Spider": (),
+    "Stirge": (),
+    "Weasel": (),
+    "Wolf": (),
+    # Constructs
+    "Earthen Statue": (),
+    # Devils
+    "Black Abishai": (),
+    "Lemure": (),
+    # Dragons
+    "Young White Dragon": (),
+    "Young Black Dragon": (),
+    "Small Zombie Dragon": (),
+    # Dwarves
+    "Deep Dwarf": (),
+    # Elementals
+    "Earth Vermin": (),
+    "Earth Elemental": (),
+    "Fire Vermin": (),
+    "Lightning Vermin": (),
+    # Elves
+    "High Elf": (),
+    "Wood Elf": (),
+    # Goblins
+    "Goblin": (),
+    # Halflings
+    "Halfling": (),
+    # Kobolds
+    "Kobold": (),
+    "Kobold Acolyte": (),
+    "Kobold Apprentice": (),
+    "Kobold Scout": (),
+    # Lycanthropes
+    "Wererat": (),
+    # Misc
+    "Fire Beetle Nest": (),
+    # Undead
+    "Skeleton": (),
+    "Skeleton Archer": (),
+    "Zombie": ()
+}
+
+monster_attacks = {
+    # Aberrations
+    "Darkmantle": (),
+    # Animals
+    "Giant Ant": (),
+    "Giant Badger": (),
+    "Bat": (),
+    "Giant Bee": (),
+    "Fire Beetle": (),
+    "Horned Beetle": (),
+    "Centipede": (),
+    "Dog": (),
+    "Lizard": (),
+    "Pony": (),
+    "Rat": (),
+    "Dire Rat": (),
+    "Scorpion": (),
+    "Viper": (),
+    "Spider": (),
+    "Stirge": (),
+    "Weasel": (),
+    "Wolf": (),
+    # Constructs
+    "Earthen Statue": (),
+    # Devils
+    "Black Abishai": (),
+    "Lemure": (),
+    # Dragons
+    "Young White Dragon": (),
+    "Young Black Dragon": (),
+    "Small Zombie Dragon": (),
+    # Dwarves
+    "Deep Dwarf": (),
+    # Elementals
+    "Earth Vermin": (),
+    "Earth Elemental": (),
+    "Fire Vermin": (),
+    "Lightning Vermin": (),
+    # Elves
+    "High Elf": (),
+    "Wood Elf": (),
+    # Goblins
+    "Goblin": (),
+    # Halflings
+    "Halfling": (),
+    # Kobolds
+    "Kobold": (),
+    "Kobold Acolyte": (),
+    "Kobold Apprentice": (),
+    "Kobold Scout": (),
+    # Lycanthropes
+    "Wererat": (),
+    # Misc
+    "Fire Beetle Nest": (),
+    # Undead
+    "Skeleton": (),
+    "Skeleton Archer": (),
+    "Zombie": ()
 }

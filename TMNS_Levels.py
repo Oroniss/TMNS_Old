@@ -229,20 +229,20 @@ Level1a_monsters = (
     ("Kobold Acolyte", 5, 15, None, True),
     ("Kobold Acolyte", 4, 16),
     ("Kobold Acolyte", 6, 16),
-    ("Deep Dwarf", 9, 22),
-    ("Deep Dwarf", 9, 24),
-    ("Kobold Scout", 10, 13, None, True),
-    ("Earth Vermin", 7, 44),
-    ("Earth Vermin", 11, 44),
-    ("Earth Vermin", 7, 46),
-    ("Earth Vermin", 11, 46),
+    # ("Deep Dwarf", 9, 22),
+    # ("Deep Dwarf", 9, 24),
+    # ("Kobold Scout", 10, 13, None, True),
+    # ("Earth Vermin", 7, 44),
+    # ("Earth Vermin", 11, 44),
+    # ("Earth Vermin", 7, 46),
+    # ("Earth Vermin", 11, 46),
     ("Earth Elemental", 8, 51),
     ("Earth Elemental", 10, 51),
-    ("High Elf", 46, 38),
-    ("High Elf", 47, 38),
-    ("High Elf", 46, 36),
-    ("Kobold Apprentice", 42, 12, None, True),
-    ("Young White Dragon", 8, 2))
+    # ("High Elf", 46, 38),
+    # ("High Elf", 47, 38),
+    # ("High Elf", 46, 36),
+    ("Kobold Apprentice", 42, 12, None, True), )
+# ("Young White Dragon", 8, 2))
 
 
 ########################################################################################################################

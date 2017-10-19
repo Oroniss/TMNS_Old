@@ -14,6 +14,7 @@ Current progress and changes.
 19/10/17: Started work on the Monster class definition.
 19/10/17: Added the create monster function.
 19/10/17: Added the monsters to the level dictionaries.
+19/10/17: Started adding the monsters in, got a few sorted.
 
 
 Next Steps
@@ -1917,6 +1918,10 @@ class MapLevel(object):
         for furnishing_info in LEVEL_FURNISHINGS[level_name]:
             new_furnishing = Furnishing.create_furnishing(*furnishing_info)
             self.add_furnishing(new_furnishing)
+
+        for monster_info in LEVEL_MONSTERS[level_name]:
+            new_monster = Monster.create_monster(*monster_info)
+            self.add_actor(new_monster)
 
         # TODO: Get all the other objects here
 
