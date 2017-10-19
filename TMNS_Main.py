@@ -10,15 +10,17 @@ Changelog for version 03
 
 Current progress and changes.
 
-Added randomisation functions.
-Started work on the Monster class definition.
-Added the create monster function.
+18/10/17: Added randomisation functions.
+19/10/17: Started work on the Monster class definition.
+19/10/17: Added the create monster function.
+19/10/17: Added the monsters to the level dictionaries.
 
 
 Next Steps
 
-Add actors to the map
-Stats and skills
+Fill out Monster descriptions.
+
+Stats and skills - for player and monsters.
 Get movement up and running properly.
 Complete available functions/scripts
 

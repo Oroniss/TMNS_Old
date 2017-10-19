@@ -221,6 +221,30 @@ Level1a_furnishings = (
     ("Stair Down", 29, 32, "Stone", "Level Transition Setup", "Level2a", 27, 53)
 )
 
+Level1a_monsters = (
+    ("Fire Beetle", 27, 46),
+    ("Fire Beetle", 27, 47),
+    ("Fire Beetle", 28, 50),
+    ("Fire Beetle", 29, 44),
+    ("Kobold Acolyte", 5, 15, None, True),
+    ("Kobold Acolyte", 4, 16),
+    ("Kobold Acolyte", 6, 16),
+    ("Deep Dwarf", 9, 22),
+    ("Deep Dwarf", 9, 24),
+    ("Kobold Scout", 10, 13, None, True),
+    ("Earth Vermin", 7, 44),
+    ("Earth Vermin", 11, 44),
+    ("Earth Vermin", 7, 46),
+    ("Earth Vermin", 11, 46),
+    ("Earth Elemental", 8, 51),
+    ("Earth Elemental", 10, 51),
+    ("High Elf", 46, 38),
+    ("High Elf", 47, 38),
+    ("High Elf", 46, 36),
+    ("Kobold Apprentice", 42, 12, None, True),
+    ("Young White Dragon", 8, 2))
+
+
 ########################################################################################################################
 #                                       Level2a
 ########################################################################################################################
@@ -402,6 +426,41 @@ Level2a_furnishings = (
     ("Stair Up", 26, 53, "Stone", "Level Transition Setup", "Level1a", 28, 32),
     ("Stair Up", 27, 53, "Stone", "Level Transition Setup", "Level1a", 29, 32))
 
+Level2a_monsters = (
+    ("Dire Rat", 44, 47),
+    ("Dire Rat", 44, 51),
+    ("Dire Rat", 51, 42),
+    ("Dire Rat", 49, 34),
+    ("Dire Rat", 49, 29),
+    ("Dire Rat", 51, 29),
+    ("Wererat", 50, 28, None, True),
+    ("Giant Bee", 50, 21),
+    ("Darkmantle", 31, 38),
+    ("Halfling", 44, 14, ("Fiendish", )),
+    ("Halfling", 46, 13, ("Fiendish", )),
+    ("Halfling", 47, 14, ("Fiendish", )),
+    ("Halfling", 46, 11, ("Fiendish", )),
+    ("Halfling", 48, 12, ("Fiendish", ), True),
+    ("Pony", 45, 12),
+    ("Pony", 48, 13),
+    ("Pony", 45, 11),
+    ("Dog", 45, 13),
+    ("Dog", 45, 14),
+    ("Wood Elf", 5, 52),
+    ("Wood Elf", 6, 51),
+    ("Wood Elf", 5, 50),
+    ("Wood Elf", 6, 50),
+    ("Skeleton Archer", 5, 40),
+    ("Skeleton Archer", 8, 38),
+    ("Skeleton Archer", 10, 38),
+    ("Skeleton", 3, 12, None, True),
+    ("Viper", 25, 2),
+    ("Viper", 23, 2),
+    ("Viper", 22, 3),
+    ("Viper", 26, 5),
+    ("Young Black Dragon", 47, 3),
+    ("Small Zombie Dragon", 22, 33, None, True))
+
 ########################################################################################################################
 #                                       Level Dictionaries
 ########################################################################################################################
@@ -419,4 +478,9 @@ LEVEL_MAPS = {
 LEVEL_FURNISHINGS = {
     "Level1a":      Level1a_furnishings,
     "Level2a":      Level2a_furnishings
+}
+
+LEVEL_MONSTERS = {
+    "Level1a":      Level1a_monsters,
+    "Level2a":      Level2a_monsters
 }
