@@ -15,6 +15,7 @@ Current progress and changes.
 19/10/17: Added the create monster function.
 19/10/17: Added the monsters to the level dictionaries.
 19/10/17: Started adding the monsters in, got a few sorted.
+20/10/17: Finished off the level 1 monsters - all at least appearing in game now.
 
 
 Next Steps

@@ -88,19 +88,20 @@ actor_traits = {
     "Black Abishai":    (),
     "Lemure":           (),
     # Dragons
-    "Young White Dragon": (),
+    "Young White Dragon": ("Dragon", "Ice", "Immune to Cold"),
     "Young Black Dragon": (),
     "Small Zombie Dragon": (),
     # Dwarves
-    "Deep Dwarf":       (),
+    "Deep Dwarf":       ("Humanoid", "Dwarf"),
     # Elementals
-    "Earth Vermin":     (),
+    "Earth Vermin":     ("Elemental", "Earth", "Immune to Poison", "Immune to Crits", "Immune to Disease"
+                         "Immune to Mental"),
     "Earth Elemental":  ("Elemental", "Earth", "Immune to Poison", "Immune to Crits", "Immune to Disease",
                          "Immune to Mental"),
     "Fire Vermin":      (),
     "Lightning Vermin": (),
     # Elves
-    "High Elf":         (),
+    "High Elf":         ("Humanoid", "Elf"),
     "Wood Elf":         (),
     # Goblins
     "Goblin":           (),
@@ -110,7 +111,7 @@ actor_traits = {
     "Kobold":           (),
     "Kobold Acolyte":   ("Humanoid", "Reptile", "Kobold", "Divine"),
     "Kobold Apprentice": ("Humanoid", "Reptile", "Kobold", "Arcane"),
-    "Kobold Scout":     (),
+    "Kobold Scout":     ("Humanoid", "Reptile", "Kobold"),
     # Lycanthropes
     "Wererat":          (),
     # Misc
@@ -131,7 +132,7 @@ actor_details = {           # Sym   Fgcolor         Align   Sub/Ob          Poss
     "Giant Badger": (),
     "Bat": (),
     "Giant Bee": (),
-    "Fire Beetle":          ("b",   "Red",          "Neut", "a fire beetle", "its", 1,      5,  4),
+    "Fire Beetle":          ("b",   "Red",          "Neut", "a fire beetle", "its", 1,      6,  4),
     "Horned Beetle": (),
     "Centipede": (),
     "Dog": (),
@@ -151,18 +152,18 @@ actor_details = {           # Sym   Fgcolor         Align   Sub/Ob          Poss
     "Black Abishai": (),
     "Lemure": (),
     # Dragons
-    "Young White Dragon": (),
+    "Young White Dragon":   ("D",   "White",        "Evil", "a young white dragon", "his", 6, 8, 0),
     "Young Black Dragon": (),
     "Small Zombie Dragon": (),
     # Dwarves
-    "Deep Dwarf": (),
+    "Deep Dwarf":           ("d",   "Steel Gray",   "Neut", "a deep dwarf",       "his", 1, 6,  0),
     # Elementals
-    "Earth Vermin": (),
-    "Earth Elemental":      ("E", "Red Brown",   "Neut", "an earth elemental", "its", 3, 4,  0),
+    "Earth Vermin":         ("E", "Red Brown",      "Neut", "an earthen spawn",   "its", 1, 5,  0),
+    "Earth Elemental":      ("E", "Red Brown",      "Neut", "an earth elemental", "its", 3, 5,  0),
     "Fire Vermin": (),
     "Lightning Vermin": (),
     # Elves
-    "High Elf": (),
+    "High Elf":             ("e",   "Gold",         "Good", "a high elf",         "her", 1, 7,  0),
     "Wood Elf": (),
     # Goblins
     "Goblin": (),
@@ -170,9 +171,9 @@ actor_details = {           # Sym   Fgcolor         Align   Sub/Ob          Poss
     "Halfling": (),
     # Kobolds
     "Kobold": (),
-    "Kobold Acolyte":       ("k",   "White",    "Evil", "a kobold acolyte",     "her",  2,  5,  0),
-    "Kobold Apprentice":    ("k",  "Magic Purple", "Evil", "a kobold apprentice",  "his",  2, 6, 0),
-    "Kobold Scout": (),
+    "Kobold Acolyte":       ("k",   "White",    "Evil", "a kobold acolyte",     "her",  2,  6,  0),
+    "Kobold Apprentice":    ("k",  "Magic Purple", "Evil", "a kobold apprentice",  "his",  3, 7, 0),
+    "Kobold Scout":         ("k",   "Fur Brown", "Evil", "a kobold scout",      "his",  2,  8,  -2),
     # Lycanthropes
     "Wererat": (),
     # Misc
@@ -213,18 +214,18 @@ actor_stats = {             # Str Int Wis Dex Con    MvL MS     Fort,   Refl,   
     "Black Abishai": (),
     "Lemure": (),
     # Dragons
-    "Young White Dragon": (),
+    "Young White Dragon":   (15, 7,  11, 10, 15,    2,  8,      5,      5,      5,      12),
     "Young Black Dragon": (),
     "Small Zombie Dragon": (),
     # Dwarves
-    "Deep Dwarf": (),
+    "Deep Dwarf":           (13, 9,   9, 9,  13,    0, 11,      2,      0,      0,      10),
     # Elementals
-    "Earth Vermin": (),
-    "Earth Elemental":      (15, 2,  11, 7,  15,    0, 16,      5,      1,      3,      8),
+    "Earth Vermin":         (11, 2,  11, 11, 13,    0, 13,      2,      0,      0,      10),
+    "Earth Elemental":      (15, 2,  11, 7,  15,    0, 16,      3,      1,      3,      10),
     "Fire Vermin": (),
     "Lightning Vermin": (),
     # Elves
-    "High Elf": (),
+    "High Elf":             (11, 15, 11, 13,  9,    0, 10,      0,      2,      2,      8),
     "Wood Elf": (),
     # Goblins
     "Goblin": (),
@@ -234,7 +235,7 @@ actor_stats = {             # Str Int Wis Dex Con    MvL MS     Fort,   Refl,   
     "Kobold": (),
     "Kobold Acolyte":       (11, 13, 16, 13, 13,    0, 9,       3,      0,      3,      8),
     "Kobold Apprentice":    (7,  16, 11, 15, 11,    0, 9,       1,      1,      3,      6),
-    "Kobold Scout": (),
+    "Kobold Scout":         (13,  9, 11, 17, 11,    0, 9,       0,      3,      0,      6),
     # Lycanthropes
     "Wererat": (),
     # Misc
@@ -274,18 +275,18 @@ actor_defenses = {          # AC,    DR,    Hard,   SR,     AR, CR, ER, FR, NR
     "Black Abishai": (),
     "Lemure": (),
     # Dragons
-    "Young White Dragon": (),
+    "Young White Dragon":   (18,    False,  0,      0,      5,  0,  0,  -15, 5),
     "Young Black Dragon": (),
     "Small Zombie Dragon": (),
     # Dwarves
-    "Deep Dwarf": (),
+    "Deep Dwarf":           (17,    False,  0,      0,      0,  0,  0,  0,  0),
     # Elementals
-    "Earth Vermin": (),
+    "Earth Vermin":         (15,    False,  0,      0,      0,  0,  0,  0,  0),
     "Earth Elemental":      (18,    False,  0,      0,      0,  0,  0,  0,  0),
     "Fire Vermin": (),
     "Lightning Vermin": (),
     # Elves
-    "High Elf": (),
+    "High Elf":             (16,    False,  0,      0,      0,  0,  0,  0,  0),
     "Wood Elf": (),
     # Goblins
     "Goblin": (),
@@ -294,8 +295,8 @@ actor_defenses = {          # AC,    DR,    Hard,   SR,     AR, CR, ER, FR, NR
     # Kobolds
     "Kobold": (),
     "Kobold Acolyte":       (16,    False,  0,      0,      0,  0,  0,  0,  0),
-    "Kobold Apprentice":    (14,    False,  0,      0,      0,  0,  0,  0,  0),
-    "Kobold Scout": (),
+    "Kobold Apprentice":    (12,    False,  0,      0,      0,  0,  0,  0,  0),
+    "Kobold Scout":         (15,    False,  0,      0,      0,  0,  0,  0,  0),
     # Lycanthropes
     "Wererat": (),
     # Misc
