@@ -20,8 +20,6 @@ Current progress and changes.
 
 Next Steps
 
-Fill out Monster descriptions.
-
 Stats and skills - for player and monsters.
 Get movement up and running properly.
 Complete available functions/scripts
@@ -232,11 +230,15 @@ def dice(num, *args):
         add = 0
     elif len(args) == 2:
         die_max, add = args
-    elif len(num) == 2:
-        num, die_max = num
-        add = 0
+    elif isinstance(num, (tuple, list)):
+        if len(num) == 2:
+            num, die_max = num
+            add = 0
+        else:
+            num, die_max, add = num
     else:
-        num, die_max, add = num
+        interface.add_debug_text("Something went wrong in dice function args were {}".format(num))
+        return 1
 
     # Get the actual random result
     total = 0
@@ -587,7 +589,7 @@ class Interface(object):
             key = Interface.get_next_key()
 
             if key == "1":
-                self.game = Game(*self.new_game_menus())
+                self.game = Game(*self.new_game_menus())  # Gets attached inside the constructor as well
                 self.game.run_game()
             elif key == "2":
                 if self.load_game_menu():
@@ -1662,7 +1664,6 @@ class Actor(Entity):
         self.will = stats[9]
         self.current_hp = stats[10]  # TODO: Fix this to a random when dice go in.
         self.max_hp = self.current_hp
-        # self.next_move = interface.game.timer.current_time + 1  # TODO: Put some randomness here too.
 
         defenses = actor_defenses[entity_name]
 
@@ -1743,6 +1744,9 @@ class Monster(Actor):
         if len(args) > 0:
             ACTOR_FUNCTION_DICT[args[0]](new_monster, args[1::])
 
+        new_monster.next_move = interface.game.timer.current_time + dice(1, new_monster.move_speed)
+        interface.game.timer.insert(new_monster.next_move, new_monster)
+
         return new_monster
 
 
@@ -1817,6 +1821,22 @@ class Player(Actor):
                 move = True
             elif key == "Right":
                 x_dif = 1
+                move = True
+            elif key == "Up_Left":
+                x_dif = -1
+                y_dif = -1
+                move = True
+            elif key == "Up_Right":
+                x_dif = 1
+                y_dif = -1
+                move = True
+            elif key == "Down_Left":
+                x_dif = -1
+                y_dif = 1
+                move = True
+            elif key == "Down_Right":
+                x_dif = 1
+                y_dif = 1
                 move = True
 
             elif key == "U":
@@ -2380,6 +2400,7 @@ class Game(object):
         """
 
         self.version_number = "0.03"  # TODO: Keep this up to date
+        interface.game = self
 
         self.player = player
         self.character_class = player.character_class
