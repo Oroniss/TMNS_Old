@@ -16,11 +16,15 @@ Current progress and changes.
 19/10/17: Added the monsters to the level dictionaries.
 19/10/17: Started adding the monsters in, got a few sorted.
 20/10/17: Finished off the level 1 monsters - all at least appearing in game now.
-
+22/10/17: Did some tidying up.
+23/10/17: Updated the dictionaries to include the stat modifiers.
 
 Next Steps
 
+Build an "update stats" function - have the Player one call recalculate instead.
 Stats and skills - for player and monsters.
+
+Effects and stat recalculation.
 Get movement up and running properly.
 Complete available functions/scripts
 
@@ -47,7 +51,6 @@ Start version
 
 Player skill-up
 Player abilities
-Effects
 
 Start version
 
