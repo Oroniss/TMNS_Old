@@ -18,6 +18,7 @@ Current progress and changes.
 20/10/17: Finished off the level 1 monsters - all at least appearing in game now.
 22/10/17: Did some tidying up.
 23/10/17: Updated the dictionaries to include the stat modifiers.
+25/10/17: Added the alter_statistic method to entities
 
 Next Steps
 
@@ -1295,6 +1296,16 @@ class Interface(object):
 ##################################################################################################################
 #                                       Entity class definition
 ##################################################################################################################
+"""
+Stat acronym dictionary
+AC      Armour Class
+AR      Acid Resistance
+CR      Cold Resistance
+ER      Electricity Resistance
+FR      Fire Resistance
+NR      Necrotic Resistance
+"""
+
 
 class Entity(object):
     """
@@ -1366,8 +1377,23 @@ class Entity(object):
     def __str__(self):
         pass
 
-    def recalculate_statistics(self, reason="None"):
-        pass
+    def alter_statistic(self, stat, modifier, reason="None"):
+        """
+        Changes a stat on the entity - here so it can be over-ridden in a few cases.
+        :param stat: string - the stat being altered
+        :param modifier: int - the amount of the increase - negative for decrease
+        :param reason: string - Still need to finalise this a bit
+        :return: True if taken care of, False otherwise.
+        """
+
+        stats = ("AC", "AR", "CR", "ER", "FR", "NR")
+        to_mod = (self.armor_class, self.acid_res, self.cold_res, self.elec_res, self.fire_res, self.necr_res)
+
+        if stat in stats:
+            index = stats.index(stat)
+            to_mod[index] += modifier
+            return True
+        return False
 
     def has_trait(self, trait):
         """
@@ -1694,6 +1720,20 @@ class Actor(Entity):
 
     def add_template(self, template):
         pass
+
+    def alter_statistic(self, stat, modifier, reason="None"):
+        # TODO: Fix this up.
+        pass
+
+    @staticmethod
+    def get_stat_modifier(stat_value):
+        """
+        Gets the modifier associated with a stat value
+        :param stat_value: integer - the stat value (str, int, etc)
+        :return: integer - the modifier
+        """
+
+        return max((stat_value - 10) // 2, -5)
 
 
 ##################################################################################################################
