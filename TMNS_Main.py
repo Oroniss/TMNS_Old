@@ -19,10 +19,10 @@ Current progress and changes.
 22/10/17: Did some tidying up.
 23/10/17: Updated the dictionaries to include the stat modifiers.
 25/10/17: Added the alter_statistic method to entities
+26/10/17: Added the alter_statistic on actor - still needs to expand to speed and attacks.
 
 Next Steps
 
-Build an "update stats" function - have the Player one call recalculate instead.
 Stats and skills - for player and monsters.
 
 Effects and stat recalculation.
@@ -1304,6 +1304,29 @@ CR      Cold Resistance
 ER      Electricity Resistance
 FR      Fire Resistance
 NR      Necrotic Resistance
+
+Actor specific ones
+
+FORT    Fortitude
+REFL    Reflex
+WILL    Will
+STR     Strength
+INT     Intelligence
+WIS     Wisdom
+DEX     Dexterity
+CON     Constitution
+
+Unresolved
+
+Hardness
+Spell Resistance
+View Distance
+Damage Reduction
+Visibility
+Movement Type
+Speed - movement and otherwise
+
+All the attack related stuff.
 """
 
 
@@ -1722,8 +1745,66 @@ class Actor(Entity):
         pass
 
     def alter_statistic(self, stat, modifier, reason="None"):
-        # TODO: Fix this up.
-        pass
+        """
+        Adds to a stat on the entity
+        :param stat: string - the stat being modified
+        :param modifier: integer - the bonus (negative for penalty)
+        :param reason: string - still tbd.
+        :return: True if modifier applied correctly, False otherwise.
+        """
+
+        if stat == "FORT":
+            self.fort += modifier
+            return True
+        elif stat == "REFL":
+            self.refl += modifier
+            return True
+        elif stat == "WILL":
+            self.will += modifier
+            return True
+
+        # TODO: Add checks for 0 or less in each of these
+        elif stat == "STR":
+            self.strength += modifier
+            # TODO: Add extra stuff here
+            return True
+        elif stat == "INT":
+            self.intelligence += modifier
+            # TODO: Add extra stuff here
+            return True
+        elif stat == "WIS":
+            old_mod = Actor.get_stat_modifier(self.wisdom)
+            self.wisdom += modifier
+            delta = Actor.get_stat_modifier(self.wisdom) - old_mod
+
+            # Start pushing the changes through
+            self.will += delta
+
+            # TODO: Add other things here
+            return True
+        elif stat == "DEX":
+            old_mod = Actor.get_stat_modifier(self.dexterity)
+            self.dexterity += modifier
+            delta = Actor.get_stat_modifier(self.dexterity) - old_mod
+
+            # Flow the changes through
+            self.refl += delta
+
+            # TODO: Add other things here
+            return True
+        elif stat == "CON":
+            old_mod = Actor.get_stat_modifier(self.constitution)
+            self.constitution += modifier
+            delta = Actor.get_stat_modifier(self.constitution) - old_mod
+
+            # Flow the changes through
+            self.fort += delta
+
+            # TODO: Add other things here
+            return True
+
+        else:
+            return Entity.alter_statistic(self, stat, modifier, reason)
 
     @staticmethod
     def get_stat_modifier(stat_value):
